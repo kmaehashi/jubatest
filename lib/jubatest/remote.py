@@ -10,7 +10,7 @@ _ssh_command = ['ssh', '-q']
 _scp_command = ['scp', '-q']
 
 # ssh sends HUP to remote process on receiveing TERM, so wrap it as TERM
-_command_wait_suffix = [ '&', '{', 'read', ';', 'pkill', '-TERM', '-P$$', ';', 'wait', '}', '&>', '/dev/null' ]
+_command_wait_suffix = [ '&', '{', 'read', ';', 'pkill', '-TERM', '-P$$', ';', 'wait', ';', '}', '&>', '/dev/null' ]
 
 class SyncRemoteProcess(object):
     """
