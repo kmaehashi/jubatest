@@ -1,0 +1,28 @@
+#!/bin/bash -ue
+
+if [ -z ${WORK_DIR} ]; then
+  trap '[ ! -z ${WORK_DIR} ] && rm -rf ${WORK_DIR}' EXIT
+  WORK_DIR="$(mktemp -d)"
+fi
+
+echo "Using working directory: ${WORK_DIR}"
+
+build() {
+    TREEISH="${1}"; shift
+    JUBATUS_PREFIX="${1}"; shift
+    JUBATUS_OUTDIR="${1}"; shift
+
+    JUBATUS_DIR="${WORK_DIR}/jubatus"
+    if [ ! -d "${JUBATUS_DIR}" ]; then
+      mkdir -p "${JUBATUS_DIR}"
+      git clone https://github.com/jubatus/jubatus.git "${JUBATUS_DIR}"
+    fi
+    pushd "${JUBATUS_DIR}/tools/packaging/allinone"
+    git checkout "${TREEISH}"
+    echo "JUBATUS_VER=${TREEISH}" > jubapkg_version_local
+    ./jubapkg -P "${JUBATUS_PREFIX}" -f -d -b
+    mv build_root "${JUBATUS_OUTDIR}"
+    popd
+}
+
+build "${1}" "${2}" "${3}"

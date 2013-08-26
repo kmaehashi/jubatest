@@ -1,0 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import sys
+
+from jubatest.main import JubaTestUtil
+
+if __name__ == '__main__':
+    sys.exit(JubaTestUtil().main(sys.argv))
