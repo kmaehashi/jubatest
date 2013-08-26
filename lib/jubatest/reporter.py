@@ -94,7 +94,7 @@ class JubaTestXunitReporter(JubaTestReporter):
         for (test, msg) in result.failures:
             suiteNode.appendChild(_testcase_notok(doc, test, msg, 'failure'))
         for (test, msg) in result.errors:
-            suiteNode.appendChild(_testcase_notok(doc, test, msg, 'errors'))
+            suiteNode.appendChild(_testcase_notok(doc, test, msg, 'error'))
         for (test, msg) in result.skipped:
             suiteNode.appendChild(_testcase_notok(doc, test, msg, 'skipped'))
 

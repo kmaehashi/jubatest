@@ -46,6 +46,19 @@ class JubaTestXunitReporterTest(JubaTestCase):
         result.testsRun += 1
         self.assertToXUnitResult(expected, result)
 
+    def test_to_xunit_error(self):
+        expected = """<?xml version="1.0" ?>
+        <testsuite errors="1" failures="0" name="jubatest" skip="0" tests="1">
+        <testcase classname="test1.test2" name="MyTest" time="1.2">
+        <error>msg</error>
+        </testcase>
+        </testsuite>
+        """
+        result = TestResultStub()
+        result.errors.append((TestStub(), 'msg'))
+        result.testsRun += 1
+        self.assertToXUnitResult(expected, result)
+
     def test_to_xunit_skip(self):
         expected = """<?xml version="1.0" ?>
         <testsuite errors="0" failures="0" name="jubatest" skip="1" tests="1">
