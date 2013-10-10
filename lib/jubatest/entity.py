@@ -338,7 +338,7 @@ class JubaRPCServer(object):
             return
         log.debug('waiting for RPC server to startup')
         delay = 20000 # usec
-        for i in range(6):
+        for i in range(8):
             time.sleep(delay / 1000000.0) # usec -> sec
             if self.is_ready():
                 log.debug('RPC server ready after %d retries', i)
