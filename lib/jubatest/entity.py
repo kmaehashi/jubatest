@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Abstraction interface of test environment and clusters/servers/keepers.
+Abstraction interface of test environment and clusters/servers/proxies.
 """
 
 import os
@@ -113,15 +113,21 @@ class JubaTestEnvironment(object):
         server = JubaStandaloneServer(node, service, config, options2)
         return server
 
-    def keeper(self, node, service, options=[]):
+    def proxy(self, node, service, options=[]):
         """
-        Constructs new keeper.
+        Constructs new proxy.
         """
         options2 = options + [
             ('--zookeeper', self._zkargs()),
         ]
-        keeper = JubaKeeper(node, service, options2)
-        return keeper
+        proxy = JubaProxy(node, service, options2)
+        return proxy
+
+    def keeper(self, *args, **kwargs):
+        """
+        Deprecated.
+        """
+        return self.proxy(*args, **kwargs)
 
     def get_node(self, number):
         """
@@ -307,7 +313,7 @@ class JubaNode(object):
 
 class JubaRPCServer(object):
     """
-    Defines the common functions among Jubatus servers and keepers.
+    Defines the common functions among Jubatus servers and proxies.
     """
 
     CLIENT_TIMEOUT = 5 # TODO make it configurable
@@ -536,9 +542,9 @@ class JubaStandaloneServer(JubaServer):
         ]
         super(JubaStandaloneServer, self).__init__(node, service, options2)
 
-class JubaKeeper(JubaRPCServer):
+class JubaProxy(JubaRPCServer):
     """
-    Represents a Jubatus keeper.
+    Represents a Jubatus proxy.
     """
 
     def get_cluster_members(self, cluster):
@@ -550,4 +556,10 @@ class JubaKeeper(JubaRPCServer):
         return members
 
     def program(self):
-        return 'juba' + self.service + '_keeper'
+        return 'juba' + self.service + '_proxy'
+
+class JubaKeeper(JubaProxy):
+    """
+    DEPRECATED
+    """
+    pass
