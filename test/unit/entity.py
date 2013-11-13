@@ -143,13 +143,13 @@ class JubaRPCServerTest(JubaTestCase):
         self.assertRaises(JubaTestFixtureFailedError, self.stub_instance.start)
 
     def test_get_client(self):
-        self.assertIsInstance(self.instance.get_client(), jubatus.classifier.client.classifier)
+        self.assertIsInstance(self.instance.get_client('foo'), jubatus.classifier.client.Classifier)
 
     def test_get_client_type(self):
-        self.assertIsInstance(self.instance.get_client_type('datum')([], []), jubatus.classifier.types.datum)
+        self.assertIsInstance(self.instance.get_client_type('datum')(), jubatus.common.Datum)
 
     def test_types(self):
-        self.assertIsInstance(self.instance.types.datum([], []), jubatus.classifier.types.datum)
+        self.assertIsInstance(self.instance.types.Datum(), jubatus.common.Datum)
 
     def test_get_host_port(self):
         (host, port) = self.instance.get_host_port()

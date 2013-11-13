@@ -9,6 +9,7 @@ import time
 import json
 import tempfile
 import copy
+import re
 
 import msgpackrpc
 
@@ -18,6 +19,19 @@ from .log import Log, LogFilter
 from .unit import JubaSkipTest, JubaTestFixtureFailedError
 from .exceptions import JubaTestAssertionError
 from .logger import log
+
+
+"""
+How Server Arguments Constructed:
++------------------------------------------------------------------------------------------------------------+
+| jubaserver_distributed   --datadir /tmp --zookeeper localhost:2181   --name cluster-name  --rpc-port 19199 |
+| jubaserver_stand_alone   --datadir /tmp                              --configpath foo     --rpc-port 19199 |
+| jubaproxy                               --zookeeper localhost:2181                        --rpc-port 19199 |
+|                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~ |
+| Category:                 Node config (+ user-specific options)       Config selector      RPC config      |
+| Set by:                   JubaTestEnvironment                         Each Class           JubaRPCServer   |
++------------------------------------------------------------------------------------------------------------+
+"""
 
 class JubaTestEnvironment(object):
     """
@@ -95,11 +109,10 @@ class JubaTestEnvironment(object):
         Constructs new server.
         """
         options2 = options + [
-            ('--name', cluster.name),
-            ('--zookeeper', self._zkargs()),
             ('--datadir', node.get_workdir()),
+            ('--zookeeper', self._zkargs()),
         ]
-        server = JubaServer(node, cluster.service, options2)
+        server = JubaServer(node, cluster.service, cluster.name, options2)
         cluster.servers += [server]
         return server
 
@@ -373,16 +386,18 @@ class JubaRPCServer(object):
         """
         return self.backend.is_running()
 
-    def get_client(self):
+    def get_client(self, cluster_name=None):
         """
         Returns the client instance for this RPC server.
         """
+        if not cluster_name:
+            cluster_name = self.cluster_name()
         cli = None
         try:
-            cli = self._get_class('.'.join(['jubatus', self.service, 'client', self.service]))(self.node.get_host(), self.port)
-            cli.client._timeout = self.CLIENT_TIMEOUT
-        except:
-            log.warning('failed to create client class for %s', self.service)
+            cli_class = self._get_class('.'.join(['jubatus', self.service, 'client', self.service.capitalize()]))
+            cli = cli_class(self.node.get_host(), self.port, cluster_name, self.CLIENT_TIMEOUT)
+        except BaseException as e:
+            raise JubaTestFixtureFailedError('failed to create client class for %s (%s)', (self.service, e.message))
         return cli
 
     def get_client_type(self, typename):
@@ -391,9 +406,12 @@ class JubaRPCServer(object):
         """
         c = None
         try:
-            c = self._get_class('.'.join(['jubatus', self.service, 'types', typename]))
-        except:
-            log.warning('failed to create client type %s for %s', typename, self.service)
+            if typename.lower() == 'datum':
+                c = self._get_class('.'.join(['jubatus', 'common', 'Datum']))
+            else:
+                c = self._get_class('.'.join(['jubatus', self.service, 'types', typename]))
+        except BaseException as e:
+            raise JubaTestFixtureFailedError('failed to create client type %s (%s)', (typename, e.message))
         return c
 
     @property
@@ -451,6 +469,12 @@ class JubaRPCServer(object):
             cli.close()
         return False
 
+    def cluster_name(self):
+        """
+        Name of the cluster; override in subclasses.
+        """
+        raise NotImplementedError
+
     def program(self):
         """
         Name of program; override in subclasses.
@@ -499,9 +523,20 @@ class JubaServer(JubaRPCServer):
     Represents a Jubatus server.
     """
 
-    def __init__(self, node, service, options):
+    def __init__(self, node, service, name, options):
         self.server_id = None
-        super(JubaServer, self).__init__(node, service, options)
+        options2 = options
+        if name:
+            self.name = name
+            options2 += [
+                ('--name', name),
+            ]
+        else:
+            self.name = ''
+        super(JubaServer, self).__init__(node, service, options2)
+
+    def cluster_name(self):
+        return self.name
 
     def program(self):
         return 'juba' + self.service
@@ -540,7 +575,7 @@ class JubaStandaloneServer(JubaServer):
         options2 = options + [
             ('--configpath', self._config_path),
         ]
-        super(JubaStandaloneServer, self).__init__(node, service, options2)
+        super(JubaStandaloneServer, self).__init__(node, service, None, options2)
 
 class JubaProxy(JubaRPCServer):
     """
@@ -555,8 +590,14 @@ class JubaProxy(JubaRPCServer):
         log.debug('got Jubatus cluster members: %d', len(members))
         return members
 
+    def cluster_name(self):
+        raise JubaTestAssertionError('Cannot assume cluster name for proxies!')
+
     def program(self):
         return 'juba' + self.service + '_proxy'
+
+    def __enter__(self):
+        raise JubaTestAssertionError('Cannot use `with` syntax with proxies!')
 
 class JubaKeeper(JubaProxy):
     """
