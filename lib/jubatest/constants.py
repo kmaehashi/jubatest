@@ -66,7 +66,7 @@ class _ConfigHolder(object):
            "reverse_nearest_neighbor_num": 30,
            "method": "euclid_lsh",
            "parameter": {
-             "lsh_num": 64,
+             "hash_num": 64,
              "table_num": 4,
              "seed": 1091,
              "probe_num": 64,
