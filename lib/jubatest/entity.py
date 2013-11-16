@@ -9,7 +9,6 @@ import time
 import json
 import tempfile
 import copy
-import re
 
 import msgpackrpc
 
