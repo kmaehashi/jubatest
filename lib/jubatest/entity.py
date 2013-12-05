@@ -581,12 +581,34 @@ class JubaProxy(JubaRPCServer):
     Represents a Jubatus proxy.
     """
 
+    def wait_for_servers(self, *servers):
+        # poll for every 1 second, timeout in 5 seconds
+        log.debug('waiting for servers to be registered: %d' % len(servers))
+        (server_id, cluster_name) = ('', '')
+        for delay in [0] + [1] * 5:
+            time.sleep(delay)
+            for server in servers:
+                server_id = server.get_id()
+                cluster_name = server.name
+                if not server_id in self.get_cluster_members(server):
+                    log.debug('member %s in cluster %s not registered yet', server_id, cluster_name)
+                    break
+            else:
+                log.debug('all servers ready')
+                return
+        raise JubaTestFixtureFailedError('wait timed-out for member %s in cluster %s' % (server_id, cluster_name))
+
     def get_cluster_members(self, cluster):
-        log.debug('requesting Jubatus cluster members')
+        log.debug('requesting Jubatus cluster members for cluster %s', cluster.name)
         cli = msgpackrpc.Client(msgpackrpc.Address(self.node.get_host(), self.port))
-        members = cli.call('get_status', cluster.name).keys()
+        try:
+            members = cli.call('get_status', cluster.name).keys()
+        except msgpackrpc.error.RPCError as e:
+            if e.args[0] != 'no server found: ' + cluster.name:
+                raise
+            members = []
         cli.close()
-        log.debug('got Jubatus cluster members: %d', len(members))
+        log.debug('got Jubatus cluster members for cluster %s: %d', cluster.name, len(members))
         return members
 
     def cluster_name(self):

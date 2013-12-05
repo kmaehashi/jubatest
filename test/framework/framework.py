@@ -62,8 +62,9 @@ class FrameworkTest(JubaTestCase):
         keeper1 = self.env.keeper(node0, CLASSIFIER)
 
         # start server and keeper
-        server1.start()
         keeper1.start()
+        server1.start()
+        keeper1.wait_for_servers(server1)
 
         self.assertTrue(keeper1.is_running())
         self.assertEqual(keeper1.port, keeper1.get_host_port()[1])
