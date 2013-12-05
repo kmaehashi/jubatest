@@ -18,9 +18,6 @@ class _DevNull(object):
 class JubaTestFixtureFailedError(JubaTestException):
     pass
 
-class JubaTestLoader(unittest.TestLoader):
-    pass
-
 class JubaTestCase(unittest.TestCase):
     def __init__(self, *args, **kwds):
         self._record = None
@@ -73,6 +70,31 @@ class JubaTestResult(unittest.TestResult):
         """
         self.successes.append(test)
         super(JubaTestResult, self).addSuccess(test)
+
+def get_loader(env):
+    """
+    Bind the global test environment to the test loader class and return it.
+    """
+
+    class JubaTestLoader(unittest.TestLoader):
+        """
+        Test classes inheriting JubaTestCase class may have a classmethod called
+        `generateTests`, which takes 1 argument (JubaTestEnvironment instance).
+        `generateTests` method is used to generate test cases at run-time.
+        `generateTests` will be called when loading test cases, so you shouldn't
+        do any test fixture related things in this method.
+        """
+        def loadTestsFromTestCase(self, testCaseClass):
+            if hasattr(testCaseClass, 'generateTests'):
+                generatedTests = testCaseClass.generateTests(env)
+                for generatedTest in generatedTests:
+                    func = generatedTest[0]
+                    args = generatedTest[1:]
+                    name = '%s:%s%s' % (self.testMethodPrefix, func.__name__, str(args))
+                    setattr(testCaseClass, name, lambda s, func=func, args=args: func(s, *args))
+            loaded_suite = super(JubaTestLoader, self).loadTestsFromTestCase(testCaseClass)
+            return loaded_suite
+    return JubaTestLoader
 
 def get_suite(env):
     """
