@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Abstraction interface of test environment and clusters/servers/keepers.
+Abstraction interface of test environment and clusters/servers/proxies.
 """
 
 import os
@@ -19,9 +19,24 @@ from .unit import JubaSkipTest, JubaTestFixtureFailedError
 from .exceptions import JubaTestAssertionError
 from .logger import log
 
+from .constants import * # to be used in DSL
+
+
+"""
+How Server Arguments Constructed:
++------------------------------------------------------------------------------------------------------------+
+| jubaserver_distributed   --datadir /tmp --zookeeper localhost:2181   --name cluster-name  --rpc-port 19199 |
+| jubaserver_stand_alone   --datadir /tmp                              --configpath foo     --rpc-port 19199 |
+| jubaproxy                               --zookeeper localhost:2181                        --rpc-port 19199 |
+|                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~ |
+| Category:                 Node config (+ user-specific options)       Config selector      RPC config      |
+| Set by:                   JubaTestEnvironment                         Each Class           JubaRPCServer   |
++------------------------------------------------------------------------------------------------------------+
+"""
+
 class JubaTestEnvironment(object):
     """
-    Provides internal-DSL for writing test preconditions.
+    Represents the test environment.
     """
 
     def __init__(self):
@@ -35,47 +50,55 @@ class JubaTestEnvironment(object):
         self._cluster_prefix = ''
         self._generated_clusters = 0
 
+    class ConfigurationDSL(object):
+        """
+        Provides an internal-DSL for test environment configuration.
+        """
+
+        def __init__(self):
+            self.env = JubaTestEnvironment()
+
+        def from_source(env, script):
+            try:
+                exec(compile(script, 'env', 'exec'))
+            except SyntaxError as e:
+                env.env = None
+                log.error('syntax error in environment configuration %s on line %d, at char %d: %s', config, e.lineno, e.offset, e.text)
+            except IOError as e:
+                env.env = None
+                log.error('error when loading environment configuration %s: %s (%s)', config, e.__class__.__name__, str(e.args))
+            return env.env
+
+        def node(self, host, ports):
+            if type(ports) != list:
+                ports = [ports]
+            self.env._node_records += [(host,ports)]
+
+        def zookeeper(self, host, port):
+            self.env._zookeepers += [(host, port)]
+
+        def prefix(self, prefix):
+            self.env._prefix = prefix
+
+        def workdir(self, workdir):
+            self.env._workdir = workdir
+
+        def variable(self, key, value):
+            self.env._variables[key] = value
+
+        def param(self, key, value):
+            self.env._params[key] = value
+
+        def cluster_prefix(self, prefix):
+            self.env._cluster_prefix = prefix
+
     @staticmethod
     def from_config(config):
-        env = JubaTestEnvironment()
-        try:
-            log.debug('loading environment configuration')
-            exec(compile(open(config).read(), 'env', 'exec'))
-            log.debug('loaded environment configuration')
-        except SyntaxError as e:
-            env = None
-            log.error('syntax error in environment configuration %s on line %d, at char %d: %s', config, e.lineno, e.offset, e.text)
-        except IOError as e:
-            env = None
-            log.error('error when loading environment configuration %s: %s (%s)', config, e.__class__.__name__, str(e.args))
+        log.debug('loading environment configuration: %s', config)
+        with open(config) as f:
+            env = JubaTestEnvironment.ConfigurationDSL().from_source(f.read())
+        log.debug('loaded environment configuration: %s', config)
         return env
-
-    #########################################################################
-    # Internal-DSL for Test Environment Definition                          #
-    #########################################################################
-
-    def node(self, host, ports):
-        if type(ports) != list:
-            ports = [ports]
-        self._node_records += [(host,ports)]
-
-    def zookeeper(self, host, port):
-        self._zookeepers += [(host, port)]
-
-    def prefix(self, prefix):
-        self._prefix = prefix
-
-    def workdir(self, workdir):
-        self._workdir = workdir
-
-    def variable(self, key, value):
-        self._variables[key] = value
-
-    def param(self, key, value):
-        self._params[key] = value
-
-    def cluster_prefix(self, prefix):
-        self._cluster_prefix = prefix
 
     #########################################################################
     # Test Fixture Definition                                               #
@@ -95,11 +118,10 @@ class JubaTestEnvironment(object):
         Constructs new server.
         """
         options2 = options + [
-            ('--name', cluster.name),
-            ('--zookeeper', self._zkargs()),
             ('--datadir', node.get_workdir()),
+            ('--zookeeper', self._zkargs()),
         ]
-        server = JubaServer(node, cluster.service, options2)
+        server = JubaServer(node, cluster.service, cluster.name, options2)
         cluster.servers += [server]
         return server
 
@@ -113,15 +135,21 @@ class JubaTestEnvironment(object):
         server = JubaStandaloneServer(node, service, config, options2)
         return server
 
-    def keeper(self, node, service, options=[]):
+    def proxy(self, node, service, options=[]):
         """
-        Constructs new keeper.
+        Constructs new proxy.
         """
         options2 = options + [
             ('--zookeeper', self._zkargs()),
         ]
-        keeper = JubaKeeper(node, service, options2)
-        return keeper
+        proxy = JubaProxy(node, service, options2)
+        return proxy
+
+    def keeper(self, *args, **kwargs):
+        """
+        Deprecated.
+        """
+        return self.proxy(*args, **kwargs)
 
     def get_node(self, number):
         """
@@ -307,7 +335,7 @@ class JubaNode(object):
 
 class JubaRPCServer(object):
     """
-    Defines the common functions among Jubatus servers and keepers.
+    Defines the common functions among Jubatus servers and proxies.
     """
 
     CLIENT_TIMEOUT = 5 # TODO make it configurable
@@ -367,16 +395,18 @@ class JubaRPCServer(object):
         """
         return self.backend.is_running()
 
-    def get_client(self):
+    def get_client(self, cluster_name=None):
         """
         Returns the client instance for this RPC server.
         """
+        if not cluster_name:
+            cluster_name = self.cluster_name()
         cli = None
         try:
-            cli = self._get_class('.'.join(['jubatus', self.service, 'client', self.service]))(self.node.get_host(), self.port)
-            cli.client._timeout = self.CLIENT_TIMEOUT
-        except:
-            log.warning('failed to create client class for %s', self.service)
+            cli_class = self._get_class('.'.join(['jubatus', self.service, 'client', self.service.capitalize()]))
+            cli = cli_class(self.node.get_host(), self.port, cluster_name, self.CLIENT_TIMEOUT)
+        except BaseException as e:
+            raise JubaTestFixtureFailedError('failed to create client class for %s (%s)', (self.service, e.message))
         return cli
 
     def get_client_type(self, typename):
@@ -385,9 +415,12 @@ class JubaRPCServer(object):
         """
         c = None
         try:
-            c = self._get_class('.'.join(['jubatus', self.service, 'types', typename]))
-        except:
-            log.warning('failed to create client type %s for %s', typename, self.service)
+            if typename.lower() == 'datum':
+                c = self._get_class('.'.join(['jubatus', 'common', 'Datum']))
+            else:
+                c = self._get_class('.'.join(['jubatus', self.service, 'types', typename]))
+        except BaseException as e:
+            raise JubaTestFixtureFailedError('failed to create client type %s (%s)', (typename, e.message))
         return c
 
     @property
@@ -445,6 +478,12 @@ class JubaRPCServer(object):
             cli.close()
         return False
 
+    def cluster_name(self):
+        """
+        Name of the cluster; override in subclasses.
+        """
+        raise NotImplementedError
+
     def program(self):
         """
         Name of program; override in subclasses.
@@ -493,9 +532,20 @@ class JubaServer(JubaRPCServer):
     Represents a Jubatus server.
     """
 
-    def __init__(self, node, service, options):
+    def __init__(self, node, service, name, options):
         self.server_id = None
-        super(JubaServer, self).__init__(node, service, options)
+        options2 = options
+        if name:
+            self.name = name
+            options2 += [
+                ('--name', name),
+            ]
+        else:
+            self.name = ''
+        super(JubaServer, self).__init__(node, service, options2)
+
+    def cluster_name(self):
+        return self.name
 
     def program(self):
         return 'juba' + self.service
@@ -518,7 +568,7 @@ class JubaServer(JubaRPCServer):
 
     def get_saved_model(self, model_id):
         log.debug('sending request: saved model ID %s', model_id)
-        model_file = self.node.get_file(self.node.get_workdir() + '/' + self.get_id() + '_jubatus_' + model_id + '.js')
+        model_file = self.node.get_file(self.node.get_workdir() + '/' + self.get_id() + '_jubatus_' + model_id + '.jubatus')
         log.debug('got reply: saved model ID %s', model_id)
         return model_file
 
@@ -534,20 +584,54 @@ class JubaStandaloneServer(JubaServer):
         options2 = options + [
             ('--configpath', self._config_path),
         ]
-        super(JubaStandaloneServer, self).__init__(node, service, options2)
+        super(JubaStandaloneServer, self).__init__(node, service, None, options2)
 
-class JubaKeeper(JubaRPCServer):
+class JubaProxy(JubaRPCServer):
     """
-    Represents a Jubatus keeper.
+    Represents a Jubatus proxy.
     """
+
+    def wait_for_servers(self, *servers):
+        # poll for every 1 second, timeout in 5 seconds
+        log.debug('waiting for servers to be registered: %d' % len(servers))
+        (server_id, cluster_name) = ('', '')
+        for delay in [0] + [1] * 5:
+            time.sleep(delay)
+            for server in servers:
+                server_id = server.get_id()
+                cluster_name = server.name
+                if not server_id in self.get_cluster_members(server):
+                    log.debug('member %s in cluster %s not registered yet', server_id, cluster_name)
+                    break
+            else:
+                log.debug('all servers ready')
+                return
+        raise JubaTestFixtureFailedError('wait timed-out for member %s in cluster %s' % (server_id, cluster_name))
 
     def get_cluster_members(self, cluster):
-        log.debug('requesting Jubatus cluster members')
+        log.debug('requesting Jubatus cluster members for cluster %s', cluster.name)
         cli = msgpackrpc.Client(msgpackrpc.Address(self.node.get_host(), self.port))
-        members = cli.call('get_status', cluster.name).keys()
+        try:
+            members = cli.call('get_status', cluster.name).keys()
+        except msgpackrpc.error.RPCError as e:
+            if e.args[0] != 'no server found: ' + cluster.name:
+                raise
+            members = []
         cli.close()
-        log.debug('got Jubatus cluster members: %d', len(members))
+        log.debug('got Jubatus cluster members for cluster %s: %d', cluster.name, len(members))
         return members
 
+    def cluster_name(self):
+        raise JubaTestAssertionError('Cannot assume cluster name for proxies!')
+
     def program(self):
-        return 'juba' + self.service + '_keeper'
+        return 'juba' + self.service + '_proxy'
+
+    def __enter__(self):
+        raise JubaTestAssertionError('Cannot use `with` syntax with proxies!')
+
+class JubaKeeper(JubaProxy):
+    """
+    DEPRECATED
+    """
+    pass

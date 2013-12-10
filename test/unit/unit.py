@@ -30,3 +30,27 @@ class JubaTestResultTest(JubaTestCase):
 class TestStub(object):
     def run(*args, **kwds):
         pass
+
+class JubaTestLoaderTest(JubaTestCase):
+    @classmethod
+    def generateTests(cls, env):
+        for i in (1, 2, 3, True, False):
+            yield cls.check_is_number_or_bool, i
+        for (x, y) in [(2, 4), (3, 9), (4, 16)]:
+            yield cls.check_pow, x, y
+
+    def setUp(self):
+        if not hasattr(self, 'test_is_ready') or not self.test_is_ready:
+            self.test_is_ready = True
+
+    def tearDown(self):
+        self.test_is_ready = False
+
+    def check_is_number_or_bool(self, v):
+        # make sure that setUp is called before running generated tests
+        self.assertTrue(self.test_is_ready)
+
+        self.assertTrue(isinstance(v, int) or isinstance(v, bool))
+
+    def check_pow(self, x, y):
+        self.assertEquals(y, x*x)

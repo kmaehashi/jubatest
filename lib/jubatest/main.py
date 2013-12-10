@@ -8,7 +8,7 @@ import traceback
 from .logger import setup_logger, log
 from .entity import JubaTestEnvironment
 from .reporter import JubaTestTextReporter, JubaTestXunitReporter
-from .unit import JubaTestLoader, JubaTestRunner, get_suite
+from .unit import JubaTestRunner, get_loader, get_suite
 
 class JubaTest(object):
     def main(self, args):
@@ -54,7 +54,7 @@ class JubaTest(object):
                 return
 
             # define the custom test loader which uses JubaTestSuite
-            loader = JubaTestLoader()
+            loader = get_loader(env)()
             loader.suiteClass = get_suite(env)
 
             # load tests
