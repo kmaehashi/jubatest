@@ -55,10 +55,16 @@ class JubaTestXunitReporter(JubaTestReporter):
 
         def _testcase(doc, test):
             node = doc.createElement('testcase')
-            (test_class, test_name) = test.id().rsplit('.', 1)
+            test_id = test.id()
+            if ':' in test_id: # test comes from generator
+                (test_id, test_args) = test_id.split(':', 1)
+                test_args = ':' + test_args
+            else:
+                test_args = ''
+            (test_class, test_name) = test_id.rsplit('.', 1)
             _setAttributes(node, [
                 ('classname', test_class),
-                ('name',      test_name),
+                ('name',      test_name + test_args),
             ])
             if hasattr(test, 'timeTaken'):
                 _setAttributes(node, [
