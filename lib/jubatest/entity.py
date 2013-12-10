@@ -19,6 +19,8 @@ from .unit import JubaSkipTest, JubaTestFixtureFailedError
 from .exceptions import JubaTestAssertionError
 from .logger import log
 
+from .constants import * # to be used in DSL
+
 
 """
 How Server Arguments Constructed:
@@ -34,7 +36,7 @@ How Server Arguments Constructed:
 
 class JubaTestEnvironment(object):
     """
-    Provides internal-DSL for writing test preconditions.
+    Represents the test environment.
     """
 
     def __init__(self):
@@ -48,47 +50,55 @@ class JubaTestEnvironment(object):
         self._cluster_prefix = ''
         self._generated_clusters = 0
 
+    class ConfigurationDSL(object):
+        """
+        Provides an internal-DSL for test environment configuration.
+        """
+
+        def __init__(self):
+            self.env = JubaTestEnvironment()
+
+        def from_source(env, script):
+            try:
+                exec(compile(script, 'env', 'exec'))
+            except SyntaxError as e:
+                env.env = None
+                log.error('syntax error in environment configuration %s on line %d, at char %d: %s', config, e.lineno, e.offset, e.text)
+            except IOError as e:
+                env.env = None
+                log.error('error when loading environment configuration %s: %s (%s)', config, e.__class__.__name__, str(e.args))
+            return env.env
+
+        def node(self, host, ports):
+            if type(ports) != list:
+                ports = [ports]
+            self.env._node_records += [(host,ports)]
+
+        def zookeeper(self, host, port):
+            self.env._zookeepers += [(host, port)]
+
+        def prefix(self, prefix):
+            self.env._prefix = prefix
+
+        def workdir(self, workdir):
+            self.env._workdir = workdir
+
+        def variable(self, key, value):
+            self.env._variables[key] = value
+
+        def param(self, key, value):
+            self.env._params[key] = value
+
+        def cluster_prefix(self, prefix):
+            self.env._cluster_prefix = prefix
+
     @staticmethod
     def from_config(config):
-        env = JubaTestEnvironment()
-        try:
-            log.debug('loading environment configuration')
-            exec(compile(open(config).read(), 'env', 'exec'))
-            log.debug('loaded environment configuration')
-        except SyntaxError as e:
-            env = None
-            log.error('syntax error in environment configuration %s on line %d, at char %d: %s', config, e.lineno, e.offset, e.text)
-        except IOError as e:
-            env = None
-            log.error('error when loading environment configuration %s: %s (%s)', config, e.__class__.__name__, str(e.args))
+        log.debug('loading environment configuration: %s', config)
+        with open(config) as f:
+            env = JubaTestEnvironment.ConfigurationDSL().from_source(f.read())
+        log.debug('loaded environment configuration: %s', config)
         return env
-
-    #########################################################################
-    # Internal-DSL for Test Environment Definition                          #
-    #########################################################################
-
-    def node(self, host, ports):
-        if type(ports) != list:
-            ports = [ports]
-        self._node_records += [(host,ports)]
-
-    def zookeeper(self, host, port):
-        self._zookeepers += [(host, port)]
-
-    def prefix(self, prefix):
-        self._prefix = prefix
-
-    def workdir(self, workdir):
-        self._workdir = workdir
-
-    def variable(self, key, value):
-        self._variables[key] = value
-
-    def param(self, key, value):
-        self._params[key] = value
-
-    def cluster_prefix(self, prefix):
-        self._cluster_prefix = prefix
 
     #########################################################################
     # Test Fixture Definition                                               #

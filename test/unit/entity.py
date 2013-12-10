@@ -14,13 +14,13 @@ class JubaTestEnvironmentTest(JubaTestCase):
         self.env = JubaTestEnvironment()
 
     def test_node(self):
-        self.env.node('myhost', [10000])
+        self.env._node_records.append(('myhost', [10000]))
         self.assertEqual('myhost', self.env.get_node(0).get_host())
         self.assertEqual(10000, self.env.get_node(0).lease_port())
 
     def test_get_node(self):
-        self.env.node('myhost1', [10000])
-        self.env.node('myhost2', [10000])
+        self.env._node_records.append(('myhost1', [10000]))
+        self.env._node_records.append(('myhost2', [10000]))
         self.assertEqual('myhost1', self.env.get_node(0).get_host())
         self.assertEqual('myhost2', self.env.get_node(1).get_host())
         self.assertRaises(JubaSkipTest, self.env.get_node, 2)
