@@ -10,13 +10,15 @@ import copy
 from .unit import JubaTestFixtureFailedError
 from .logger import log
 
-# Constants
+
 CLASSIFIER = 'classifier'
 REGRESSION = 'regression'
 RECOMMENDER = 'recommender'
 STAT = 'stat'
 GRAPH = 'graph'
 ANOMALY = 'anomaly'
+NEAREST_NEIGHBOR = 'nearest_neighbor'
+CLUSTERING = 'clustering'
 
 def sleep(sec):
     log.debug('sleeping for %f seconds' % sec)
@@ -36,7 +38,9 @@ class _ConfigHolder(object):
         "string_types": {},
         "string_rules": [{"key": "*", "type": "str",  "sample_weight": "bin", "global_weight": "bin"}],
         "num_types": {},
-        "num_rules": [{"key": "*", "type": "num"}]
+        "num_rules": [{"key": "*", "type": "num"}],
+        "binary_types": {},
+        "binary_rules": []
     }
     default = {
         CLASSIFIER: {
@@ -84,5 +88,25 @@ class _ConfigHolder(object):
         },
         STAT: {
             "window_size": 128
+        },
+        NEAREST_NEIGHBOR: {
+            "method" : "kmeans",
+            "converter": _converter,
+            "parameter" : {
+              "k" : 3,
+              "compressor_method" : "compressive_kmeans",
+              "bucket_size" : 1000,
+              "compressed_bucket_size" : 100,
+              "bicriteria_base_size" : 10,
+              "bucket_length" : 2,
+              "forgetting_factor" : 0,
+              "forgetting_threshold" : 0.5
+            }
+        },
+        CLUSTERING: {
+            "method": "lsh",
+            "parameter" : {
+                "hash_num" : 64
+            }
         }
     }
