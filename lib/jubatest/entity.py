@@ -181,7 +181,7 @@ class JubaTestEnvironment(object):
 
     def _generate_cluster_name(self):
         self._generated_clusters += 1
-        return '%scluster-%d' % (self._cluster_prefix, self._generated_clusters)
+        return 'jubatest-cluster-%s-%d' % (self._cluster_prefix, self._generated_clusters)
 
 class JubaCluster(object):
     """

@@ -23,7 +23,7 @@ env.zookeeper('127.0.0.1', 2181)
 ### Miscellaneous Node Configuration
 ###
 env.workdir('/tmp')
-env.cluster_prefix('sample-')
+env.cluster_prefix('sample')
 
 ###
 ### Test Parameters
