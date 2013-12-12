@@ -38,6 +38,7 @@ class JubaTestCase(unittest.TestCase):
 
 class JubaTestRunner(unittest.TextTestRunner):
     def __init__(self, *args, **kwds):
+        unittest.installHandler()
         super(JubaTestRunner, self).__init__(stream=_DevNull(), resultclass=JubaTestResult, *args, **kwds)
 
 class JubaSkipTest(unittest.SkipTest):
@@ -70,6 +71,10 @@ class JubaTestResult(unittest.TestResult):
         """
         self.successes.append(test)
         super(JubaTestResult, self).addSuccess(test)
+
+    def stop(self):
+        log.warn('stopping test!')
+        super(JubaTestResult, self).stop()
 
 def get_loader(env):
     """
