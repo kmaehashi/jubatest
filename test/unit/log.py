@@ -38,7 +38,7 @@ class LogTest(JubaTestCase):
         log = Log('localhost', '2013-05-16 13:58:52,659:28460(0x7f02e99b7740):ZOO_INFO@log_env@712: Client environment:zookeeper.version=zookeeper C client 3.4.5')
         self.assertEqual('zookeeper', log.type)
         self.assertEqual(LogLevel.INFO, log.level)
-        self.assertEqual(datetime(datetime.now().year, 5, 16, 13, 58, 52, 659), log.time)
+        self.assertEqual(datetime(2013, 5, 16, 13, 58, 52, 659), log.time)
         self.assertEqual(28460, log.thread_id)
         self.assertEqual('log_env', log.source)
         self.assertEqual('712', log.source_line)
