@@ -123,12 +123,23 @@ def get_suite(env):
                     if setUpClassMethod:
                         setUpClassMethod()
                 return setUpClass
+            def _wrapTearDownClassMethod(tearDownClassMethod):
+                @classmethod
+                def tearDownClass(cls):
+                    if getattr(cls, 'tearDownCluster', None):
+                        cls.tearDownCluster(env)
+                    if tearDownClassMethod:
+                        tearDownClassMethod()
+                    env._check_port_leak()
+                return tearDownClass
             for test in self:
                 if issubclass(test.__class__, JubaTestCase):
-                    # avoid double-wrapping the same class
-                    if not getattr(test.__class__, 'setUpClass_wrapped', None):
+                    wrapped_flag = '__jubatest_wrapped'
+                    if not getattr(test.__class__, wrapped_flag, None):
                         setUpClassMethod = getattr(test.__class__, 'setUpClass', None)
                         setattr(test.__class__, 'setUpClass', _wrapSetUpClassMethod(setUpClassMethod))
-                        setattr(test.__class__, 'setUpClass_wrapped', True)
+                        tearDownClassMethod = getattr(test.__class__, 'tearDownClass', None)
+                        setattr(test.__class__, 'tearDownClass', _wrapTearDownClassMethod(tearDownClassMethod))
+                        setattr(test.__class__, wrapped_flag, True)
             super(JubaTestSuite, self).run(*args, **kwds)
     return JubaTestSuite

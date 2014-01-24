@@ -34,11 +34,13 @@ class JubaNodeTest(JubaTestCase):
         self.assertEqual(10, port)
         self.assertEqual(1, len(n._ports))
         self.assertEqual(0, len(n._free_ports))
+        self.assertEqual(1, n.ports_used())
 
         n.free_port(port)
 
         self.assertEqual(1, len(n._ports))
         self.assertEqual(1, len(n._free_ports))
+        self.assertEqual(0, n.ports_used())
 
     def test_pool_3(self):
         n = JubaNode('localhost', range(10000,10003), None, '/tmp', [])
@@ -50,12 +52,14 @@ class JubaNodeTest(JubaTestCase):
         self.assertEqual(10001, port2)
         self.assertEqual(3, len(n._ports))
         self.assertEqual(1, len(n._free_ports))
+        self.assertEqual(2, n.ports_used())
 
         n.free_port(port1)
         n.free_port(port2)
 
         self.assertEqual(3, len(n._ports))
         self.assertEqual(3, len(n._free_ports))
+        self.assertEqual(0, n.ports_used())
 
         port3 = n.lease_port()
 

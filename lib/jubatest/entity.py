@@ -183,6 +183,16 @@ class JubaTestEnvironment(object):
         self._generated_clusters += 1
         return 'jubatest-cluster-%s-%d' % (self._cluster_prefix, self._generated_clusters)
 
+    def _check_port_leak(self):
+        is_leaked = False
+        for number in self._nodes:
+            node = self._nodes[number]
+            ports_used = node.ports_used()
+            if ports_used != 0:
+                log.warning('%d leaked port(s) detected on node %d (%s); maybe you forgot to stop the RPC server?', ports_used, number, node.get_host())
+                is_leaked = True
+        return is_leaked
+
 class JubaCluster(object):
     """
     Represents a Jubatus cluster.
@@ -272,6 +282,12 @@ class JubaNode(object):
                 raise JubaTestAssertionError('double free for port %d on host %s detected' % (port, self._host))
         else:
             raise JubaTestAssertionError('port %d is not a member port of host %s' % (port, self._host))
+
+    def ports_used(self):
+        """
+        Returns number of ports in use.
+        """
+        return len(self._ports) - len(self._free_ports)
 
     def put_file(self, data, to_path=None):
         """
