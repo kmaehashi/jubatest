@@ -13,6 +13,7 @@ env.prefix('/opt/jubatus')
 ### Test Node Configuration
 ###
 env.node('127.0.0.1', range(19199,19299))
+#env.node('127.0.0.1', 19199)
 
 ###
 ### ZooKeeper Configuration
