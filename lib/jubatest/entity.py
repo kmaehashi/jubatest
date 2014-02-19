@@ -370,24 +370,27 @@ class JubaRPCServer(object):
         self.options = options
         self.port = -1
         self.backend = None
-        self._stopped = True
         self._log_filter = None
 
     def start(self, sync=True):
         """
         Starts the RPC server.
         """
+        if self.is_running():
+            raise JubaTestFixtureFailedError('this instance is already running')
+
         self.port = self.node.lease_port()
         options2 = self.options + [
             ('--rpc-port', self.port),
         ]
         flat_opts = self._flatten_options(options2)
         self.backend = self.node.get_process([self.program()] + flat_opts)
+
         log.debug('starting remote process')
         self.backend.start()
-        self._stopped = False
         if not sync:
             return
+
         log.debug('waiting for RPC server to startup')
         delay = 20000 # usec
         for i in range(8):
@@ -406,9 +409,9 @@ class JubaRPCServer(object):
         """
         Stops the RPC server.
         """
-        if self._stopped:
-            log.debug('process is already stopped')
-            return
+        if not self.is_running():
+            raise JubaTestFixtureFailedError('this instance is not running')
+
         log.debug('stopping remote process')
         self.backend.stop()
         self.node.free_port(self.port)
@@ -417,7 +420,7 @@ class JubaRPCServer(object):
         """
         Tests if the backed process is still running.
         """
-        return self.backend.is_running()
+        return self.backend and self.backend.is_running()
 
     def get_client(self, cluster_name=None):
         """
