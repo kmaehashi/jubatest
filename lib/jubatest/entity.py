@@ -431,7 +431,16 @@ class JubaRPCServer(object):
         """
         c = None
         try:
-            if typename.lower() == 'datum':
+            if typename == 'datum':
+                # migration support for Jubatus 0.4.5
+                datumClass = self._get_class('.'.join(['jubatus', 'common', 'Datum']))
+                class Datum04(datumClass):
+                    def __init__(self_inner, string_values, num_values):
+                        datumClass.__init__(self_inner)
+                        self_inner.string_values = string_values
+                        self_inner.num_values = num_values
+                c = Datum04
+            elif typename == 'Datum':
                 c = self._get_class('.'.join(['jubatus', 'common', 'Datum']))
             else:
                 c = self._get_class('.'.join(['jubatus', self.service, 'types', typename]))
