@@ -150,7 +150,7 @@ class JubaRPCServerTest(JubaTestCase):
         self.assertIsInstance(self.instance.get_client('foo'), jubatus.classifier.client.Classifier)
 
     def test_get_client_type(self):
-        self.assertIsInstance(self.instance.get_client_type('datum')(), jubatus.common.Datum)
+        self.assertIsInstance(self.instance.get_client_type('Datum')(), jubatus.common.Datum)
 
     def test_types(self):
         self.assertIsInstance(self.instance.types.Datum(), jubatus.common.Datum)

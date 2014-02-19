@@ -34,7 +34,7 @@ class FrameworkTest(JubaTestCase):
             self.assertIsNotNone(re.match('\d+\.\d+\.\d+\.\d+_\d+', server1_id), server1_id)
 
             # query server
-            d = server1.types.datum({'foo': 'bar'})
+            d = server1.types.Datum({'foo': 'bar'})
             self.assertEqual(1, cli.train([('label', d)]))
 
             # save
@@ -77,7 +77,7 @@ class FrameworkTest(JubaTestCase):
         self.assertEqual(1, len(keeper1.get_cluster_members(cluster)))
 
         # query keeper
-        d = keeper1.types.datum({'foo': 'bar'})
+        d = keeper1.types.Datum({'foo': 'bar'})
         cli = keeper1.get_client(cluster.name)
         self.assertEqual(1, cli.train([('label', d)]))
 

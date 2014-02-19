@@ -10,7 +10,7 @@ class TestBase(object):
         cli = self.target.get_client(self.name)
 
         # query server and check result
-        d = self.target.types.datum({'foo': 'bar'})
+        d = self.target.types.Datum({'foo': 'bar'})
         self.assertEqual(1, cli.train([('label', d)]))
 
         self._stop()
