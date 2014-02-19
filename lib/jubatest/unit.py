@@ -130,16 +130,41 @@ def get_suite(env):
                         cls.tearDownCluster(env)
                     if tearDownClassMethod:
                         tearDownClassMethod()
-                    env.finalize_test()
                 return tearDownClass
+            def _wrapSetUpMethod(setUpMethod):
+                def setUp(instance):
+                    if setUpMethod:
+                        try:
+                            setUpMethod(instance)
+                        except:
+                            env.finalize_test()
+                            raise
+                return setUp
+            def _wrapTearDownMethod(tearDownMethod):
+                def tearDown(instance):
+                    try:
+                        if tearDownMethod:
+                            tearDownMethod(instance)
+                    finally:
+                        env.finalize_test()
+                return tearDown
             for test in self:
                 if issubclass(test.__class__, JubaTestCase):
                     wrapped_flag = '__jubatest_wrapped'
                     if not getattr(test.__class__, wrapped_flag, None):
+                        # add flag
+                        setattr(test.__class__, wrapped_flag, True)
+                        # wrap setUpClass
                         setUpClassMethod = getattr(test.__class__, 'setUpClass', None)
                         setattr(test.__class__, 'setUpClass', _wrapSetUpClassMethod(setUpClassMethod))
+                        # wrap tearDownClass
                         tearDownClassMethod = getattr(test.__class__, 'tearDownClass', None)
                         setattr(test.__class__, 'tearDownClass', _wrapTearDownClassMethod(tearDownClassMethod))
-                        setattr(test.__class__, wrapped_flag, True)
+                        # wrap setUp
+                        setUpMethod = getattr(test.__class__, 'setUp', None)
+                        setattr(test.__class__, 'setUp', _wrapSetUpMethod(setUpMethod))
+                        # wrap tearDown
+                        tearDownMethod = getattr(test.__class__, 'tearDown', None)
+                        setattr(test.__class__, 'tearDown', _wrapTearDownMethod(tearDownMethod))
             super(JubaTestSuite, self).run(*args, **kwds)
     return JubaTestSuite

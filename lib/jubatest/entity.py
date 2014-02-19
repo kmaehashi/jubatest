@@ -102,7 +102,7 @@ class JubaTestEnvironment(object):
         return env
 
     def finalize_test(self):
-        log.debug('{count} server/proxy instances used for this test class'.format(count=len(self._rpc_servers)))
+        log.debug('{count} server/proxy instances used for this test'.format(count=len(self._rpc_servers)))
         for rpc_server in self._rpc_servers:
             if rpc_server.is_running():
                 log.warning('{c} is still running! stopping anyway...'.format(c=rpc_server.__class__.__name__))
