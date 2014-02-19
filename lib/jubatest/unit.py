@@ -130,7 +130,7 @@ def get_suite(env):
                         cls.tearDownCluster(env)
                     if tearDownClassMethod:
                         tearDownClassMethod()
-                    env._check_port_leak()
+                    env.finalize_test()
                 return tearDownClass
             for test in self:
                 if issubclass(test.__class__, JubaTestCase):

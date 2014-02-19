@@ -49,6 +49,7 @@ class JubaTestEnvironment(object):
         self._params = {}
         self._cluster_prefix = ''
         self._generated_clusters = 0
+        self._rpc_servers = []
 
     class ConfigurationDSL(object):
         """
@@ -100,6 +101,20 @@ class JubaTestEnvironment(object):
         log.debug('loaded environment configuration: %s', config)
         return env
 
+    def finalize_test(self):
+        log.debug('{count} server/proxy instances used for this test class'.format(count=len(self._rpc_servers)))
+        for rpc_server in self._rpc_servers:
+            if rpc_server.is_running():
+                log.warning('{c} is still running! stopping anyway...'.format(c=rpc_server.__class__.__name__))
+                rpc_server.stop()
+        self._rpc_servers = []
+
+        for number in self._nodes:
+            node = self._nodes[number]
+            ports_used = node.ports_used()
+            if ports_used != 0:
+                log.warning('%d leaked port(s) detected on node %d (%s); maybe you forgot to stop the RPC server?', ports_used, number, node.get_host())
+
     #########################################################################
     # Test Fixture Definition                                               #
     #########################################################################
@@ -123,6 +138,7 @@ class JubaTestEnvironment(object):
         ]
         server = JubaServer(node, cluster.service, cluster.name, options2)
         cluster.servers += [server]
+        self._rpc_servers.append(server)
         return server
 
     def server_standalone(self, node, service, config, options=[]):
@@ -133,6 +149,7 @@ class JubaTestEnvironment(object):
             ('--datadir', node.get_workdir()),
         ]
         server = JubaStandaloneServer(node, service, config, options2)
+        self._rpc_servers.append(server)
         return server
 
     def proxy(self, node, service, options=[]):
@@ -143,6 +160,7 @@ class JubaTestEnvironment(object):
             ('--zookeeper', self._zkargs()),
         ]
         proxy = JubaProxy(node, service, options2)
+        self._rpc_servers.append(proxy)
         return proxy
 
     def keeper(self, *args, **kwargs):
@@ -182,16 +200,6 @@ class JubaTestEnvironment(object):
     def _generate_cluster_name(self):
         self._generated_clusters += 1
         return 'jubatest-cluster-%s-%d' % (self._cluster_prefix, self._generated_clusters)
-
-    def _check_port_leak(self):
-        is_leaked = False
-        for number in self._nodes:
-            node = self._nodes[number]
-            ports_used = node.ports_used()
-            if ports_used != 0:
-                log.warning('%d leaked port(s) detected on node %d (%s); maybe you forgot to stop the RPC server?', ports_used, number, node.get_host())
-                is_leaked = True
-        return is_leaked
 
 class JubaCluster(object):
     """
