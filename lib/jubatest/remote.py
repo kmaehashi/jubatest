@@ -65,7 +65,7 @@ class AsyncRemoteProcess(LocalSubprocess):
         super(AsyncRemoteProcess, self).__init__(ssh_args)
 
     def wait(self):
-        raise NotImplementedError('cannot wait for async processes')
+        raise NotImplementedError('cannot wait for remote processes')
 
     def stop(self):
         super(AsyncRemoteProcess, self).wait('\n')

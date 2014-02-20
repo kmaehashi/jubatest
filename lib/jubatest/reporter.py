@@ -36,12 +36,12 @@ class JubaTestTextReporter(JubaTestReporter):
         buf += "\n----- Success -----\n{result}".format(result=('\n'.join(map(str, result.successes))))
 
         for elem in [('Failure', result.failures), ('Error', result.errors), ('Skipped', result.skipped)]:
-            buf += "\n\n----- {heading} -----\n".format(heading=elem[0])
+            buf += "\n\n----- {heading} -----".format(heading=elem[0])
             for (test, err) in elem[1]:
-                logs = ''
+                logs = '(no logs available)\n'
                 if hasattr(test, 'logs'):
                     logs = self.prettify_logs(test.logs) + '\n'
-                buf += "{name}:\n{err}\n{logs}".format(name=str(test), err=err, logs=logs)
+                buf += "\n{name}:\n{err}\n{logs}".format(name=str(test), err=err, logs=logs)
         return buf
 
 
