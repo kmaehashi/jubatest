@@ -122,11 +122,16 @@ class JubaTestEnvironment(object):
         if testCase.attachLogs:
             attach_logs = []
             for rpc_server in self._rpc_servers:
-                kind = rpc_server.__class__.__name__
-                (host, port) = rpc_server.get_host_port()
-                log_raw = rpc_server.log_raw()
-                attach_logs.append((kind, host, port, log_raw))
+                if rpc_server.is_used():
+                    kind = rpc_server.__class__.__name__
+                    (host, port) = rpc_server.get_host_port()
+                    log_raw = rpc_server.log_raw()
+                    attach_logs.append((kind, host, port, log_raw))
             testCase.logs = attach_logs
+
+        # reset internal state of RPC server instances for reuse
+        for rpc_server in self._rpc_servers:
+            rpc_server.reset()
 
     def finalize_test_class(self, testClass):
         log.debug('{count} RPC fixtures used for this test class'.format(count=len(self._rpc_servers)))
@@ -386,8 +391,18 @@ class JubaRPCServer(object):
         self.service = service
         self.options = options
         self.port = -1
-        self.backend = None
+        self._backend = None
         self._log_filter = None
+
+    def reset(self):
+        self._backend = None
+        self._log_filter = None
+
+    def is_used(self):
+        """
+        Server has been started at least once.
+        """
+        return self._backend is not None
 
     def start(self, sync=True):
         """
@@ -401,10 +416,10 @@ class JubaRPCServer(object):
             ('--rpc-port', self.port),
         ]
         flat_opts = self._flatten_options(options2)
-        self.backend = self.node.get_process([self.program()] + flat_opts)
+        self._backend = self.node.get_process([self.program()] + flat_opts)
 
         log.debug('starting remote process')
-        self.backend.start()
+        self._backend.start()
         if not sync:
             return
 
@@ -420,7 +435,7 @@ class JubaRPCServer(object):
             log.warning('RPC server startup sync timed out, stopping')
             self.stop()
         finally:
-            raise JubaTestFixtureFailedError('failed to start server: stdout = %s, stderr = %s' % (self.backend.stdout, self.backend.stderr))
+            raise JubaTestFixtureFailedError('failed to start server: stdout = %s, stderr = %s' % (self._backend.stdout, self._backend.stderr))
 
     def stop(self):
         """
@@ -430,14 +445,14 @@ class JubaRPCServer(object):
             raise JubaTestFixtureFailedError('this instance is not running')
 
         log.debug('stopping remote process')
-        self.backend.stop()
+        self._backend.stop()
         self.node.free_port(self.port)
 
     def is_running(self):
         """
         Tests if the backed process is still running.
         """
-        return self.backend and self.backend.is_running()
+        return self._backend and self._backend.is_running()
 
     def get_client(self, cluster_name=None):
         """
@@ -511,14 +526,14 @@ class JubaRPCServer(object):
         """
         Returns raw log.
         """
-        if self.backend and self.backend.stderr is not None:
-            return self.backend.stderr
+        if self._backend and self._backend.stderr is not None:
+            return self._backend.stderr
         raise JubaTestAssertionError('no log data collected (maybe the server is not stopped yet?)')
 
     def _get_log_filter(self):
-        if self.backend and self.backend.stderr:
+        if self._backend and self._backend.stderr is not None:
             if not self._log_filter:
-                self._log_filter = LogFilter(Log.parse_logs(self.node, self.backend.stderr))
+                self._log_filter = LogFilter(Log.parse_logs(self.node, self._backend.stderr))
             return self._log_filter
         log.warning('log data is not available (maybe the server is not stopped yet?)')
         raise JubaTestAssertionError('no log data collected (maybe the server is not stopped yet?)')
