@@ -648,6 +648,13 @@ class JubaServer(JubaRPCServer):
         log.debug('got reply: saved model ID %s', model_id)
         return model_file
 
+    def do_mix(self, timeout=120):
+        log.debug('sending do_mix request with timeout of %d seconds', timeout)
+        cli = msgpackrpc.Client(msgpackrpc.Address(self.node.get_host(), self.port), timeout)
+        cli.call('do_mix')
+        cli.close()
+        log.debug('MIX done')
+
 class JubaStandaloneServer(JubaServer):
     """
     Represents a Jubatus servers that run in standalone mode.
