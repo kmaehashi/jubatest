@@ -76,95 +76,83 @@ class JubaTestResult(unittest.TestResult):
         log.warn('stopping test!')
         super(JubaTestResult, self).stop()
 
-def get_loader(env):
+class JubaTestLoader(unittest.TestLoader):
     """
-    Bind the global test environment to the test loader class and return it.
+    Test classes inheriting JubaTestCase class may have a classmethod called
+    `generateTests`, which takes 1 argument (JubaTestEnvironment instance).
+    `generateTests` method is used to generate test cases at run-time.
+    `generateTests` will be called when loading test cases, so you shouldn't
+    do any test fixture related things in this method.
     """
+    def loadTestsFromTestCase(self, testCaseClass):
+        env = self.env
+        if hasattr(testCaseClass, 'generateTests'):
+            generatedTests = testCaseClass.generateTests(env)
+            for generatedTest in generatedTests:
+                func = generatedTest[0]
+                args = generatedTest[1:]
+                name = '%s:%s%s' % (self.testMethodPrefix, func.__name__, str(args))
+                setattr(testCaseClass, name, lambda s, func=func, args=args: func(s, *args))
+        loaded_suite = super(JubaTestLoader, self).loadTestsFromTestCase(testCaseClass)
+        return loaded_suite
 
-    class JubaTestLoader(unittest.TestLoader):
-        """
-        Test classes inheriting JubaTestCase class may have a classmethod called
-        `generateTests`, which takes 1 argument (JubaTestEnvironment instance).
-        `generateTests` method is used to generate test cases at run-time.
-        `generateTests` will be called when loading test cases, so you shouldn't
-        do any test fixture related things in this method.
-        """
-        def loadTestsFromTestCase(self, testCaseClass):
-            if hasattr(testCaseClass, 'generateTests'):
-                generatedTests = testCaseClass.generateTests(env)
-                for generatedTest in generatedTests:
-                    func = generatedTest[0]
-                    args = generatedTest[1:]
-                    name = '%s:%s%s' % (self.testMethodPrefix, func.__name__, str(args))
-                    setattr(testCaseClass, name, lambda s, func=func, args=args: func(s, *args))
-            loaded_suite = super(JubaTestLoader, self).loadTestsFromTestCase(testCaseClass)
-            return loaded_suite
-    return JubaTestLoader
-
-def get_suite(env):
+class JubaTestSuite(unittest.TestSuite):
     """
-    Bind the global test environment to the test suite class and return it.
+    Test classes inheriting JubaTestCase class may have a classmethod called
+    `setUpCluster`, which takes 1 argument (JubaTestEnvironment instance).
+    `setUpCluster` method is used to configure the cluster fixture to satisfy
+    the pre-conditions for the test case.
+    `setUpCluster` will be called just before `setUpClass` method.
     """
-
-    class JubaTestSuite(unittest.TestSuite):
-        """
-        Test classes inheriting JubaTestCase class may have a classmethod called
-        `setUpCluster`, which takes 1 argument (JubaTestEnvironment instance).
-        `setUpCluster` method is used to configure the cluster fixture to satisfy
-        the pre-conditions for the test case.
-        `setUpCluster` will be called just after `setUpClass` method.
-        """
-        def run(self, *args, **kwds):
-            def _wrapSetUpClassMethod(setUpClassMethod):
-                @classmethod
-                def setUpClass(cls):
-                    if getattr(cls, 'setUpCluster', None):
-                        cls.setUpCluster(env)
-                    if setUpClassMethod:
-                        setUpClassMethod()
-                return setUpClass
-            def _wrapTearDownClassMethod(tearDownClassMethod):
-                @classmethod
-                def tearDownClass(cls):
+    def run(self, *args, **kwds):
+        env = self.env
+        def _wrapSetUpClassMethod(setUpClassMethod):
+            @classmethod
+            def setUpClass(cls):
+                if getattr(cls, 'setUpCluster', None):
+                    cls.setUpCluster(env)
+                if setUpClassMethod:
+                    setUpClassMethod()
+            return setUpClass
+        def _wrapTearDownClassMethod(tearDownClassMethod):
+            @classmethod
+            def tearDownClass(cls):
+                try:
                     if getattr(cls, 'tearDownCluster', None):
                         cls.tearDownCluster(env)
                     if tearDownClassMethod:
                         tearDownClassMethod()
-                return tearDownClass
-            def _wrapSetUpMethod(setUpMethod):
-                def setUp(instance):
-                    if setUpMethod:
-                        try:
-                            setUpMethod(instance)
-                        except:
-                            env.finalize_test()
-                            raise
-                return setUp
-            def _wrapTearDownMethod(tearDownMethod):
-                def tearDown(instance):
-                    try:
-                        if tearDownMethod:
-                            tearDownMethod(instance)
-                    finally:
-                        env.finalize_test()
-                return tearDown
-            for test in self:
-                if issubclass(test.__class__, JubaTestCase):
-                    wrapped_flag = '__jubatest_wrapped'
-                    if not getattr(test.__class__, wrapped_flag, None):
-                        # add flag
-                        setattr(test.__class__, wrapped_flag, True)
-                        # wrap setUpClass
-                        setUpClassMethod = getattr(test.__class__, 'setUpClass', None)
-                        setattr(test.__class__, 'setUpClass', _wrapSetUpClassMethod(setUpClassMethod))
-                        # wrap tearDownClass
-                        tearDownClassMethod = getattr(test.__class__, 'tearDownClass', None)
-                        setattr(test.__class__, 'tearDownClass', _wrapTearDownClassMethod(tearDownClassMethod))
-                        # wrap setUp
-                        setUpMethod = getattr(test.__class__, 'setUp', None)
-                        setattr(test.__class__, 'setUp', _wrapSetUpMethod(setUpMethod))
-                        # wrap tearDown
-                        tearDownMethod = getattr(test.__class__, 'tearDown', None)
-                        setattr(test.__class__, 'tearDown', _wrapTearDownMethod(tearDownMethod))
-            super(JubaTestSuite, self).run(*args, **kwds)
-    return JubaTestSuite
+                finally:
+                    env.finalize_test_class()
+            return tearDownClass
+        for test in self:
+            if issubclass(test.__class__, JubaTestCase):
+                wrapped_flag = '__jubatest_wrapped'
+                if not getattr(test.__class__, wrapped_flag, None):
+                    # add flag
+                    setattr(test.__class__, wrapped_flag, True)
+                    # wrap setUpClass
+                    setUpClassMethod = getattr(test.__class__, 'setUpClass', None)
+                    setattr(test.__class__, 'setUpClass', _wrapSetUpClassMethod(setUpClassMethod))
+                    # wrap tearDownClass
+                    tearDownClassMethod = getattr(test.__class__, 'tearDownClass', None)
+                    setattr(test.__class__, 'tearDownClass', _wrapTearDownClassMethod(tearDownClassMethod))
+                # add cleanUp
+                test.addCleanup(env.finalize_test_case)
+        super(JubaTestSuite, self).run(*args, **kwds)
+
+def get_loader(e):
+    """
+    Bind the global test environment to the test loader class and return it.
+    """
+    class JubaTestLoaderBoundToEnv(JubaTestLoader):
+        env = e
+    return JubaTestLoaderBoundToEnv
+
+def get_suite(e):
+    """
+    Bind the global test environment to the test suite class and return it.
+    """
+    class JubaTestSuiteBoundToEnv(JubaTestSuite):
+        env = e
+    return JubaTestSuiteBoundToEnv
