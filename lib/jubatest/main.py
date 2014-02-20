@@ -12,8 +12,6 @@ from .unit import get_runner, get_loader, get_suite
 
 class JubaTest(object):
     def main(self, args):
-        setup_logger('INFO')
-
         retval = 0
         log_levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR']
 
@@ -26,14 +24,14 @@ class JubaTest(object):
             parser.add_argument('--pattern',  type=str, default='*.py', help='patterns of test case files')
             parser.add_argument('--xunit',    type=str, default=None,   help='path to store xUnit test report')
             parser.add_argument('--log',      type=str, default='INFO', choices=log_levels, help='log level')
+            parser.add_argument('--log-file', type=str, default=None,   help='path to log file')
 
             params = parser.parse_args(args[1:])
 
             if params.library:
                 sys.path.insert(0, params.library)
 
-            if params.log:
-                log.setLevel(params.log)
+            setup_logger(params.log, params.log_file)
 
             # TODO: PAINFUL WORKAROUND!
             # tornado 2.x uses the root logger, causing too many warning logs to be directly
