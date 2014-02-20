@@ -8,6 +8,19 @@ class JubaTestReporter(object):
     def create_report(self, result):
         raise NotImplementedError
 
+    @classmethod
+    def prettify_logs(self, servers):
+        ent = []
+        for (kind, host, port, log) in servers:
+            if not log:
+                continue
+            ent.append("""
+# ====== {kind} Log ({host}:{port}) ================================================== #
+{log}
+# ==================================================================================== #
+""".format(kind=kind, host=host, port=port, log=log))
+        return '\n'.join(ent)
+
 class JubaTestTextReporter(JubaTestReporter):
     def create_report(self, result):
         buf = ""
@@ -20,18 +33,15 @@ class JubaTestTextReporter(JubaTestReporter):
 ========================
         """ % (result.testsRun, len(result.errors), len(result.failures), len(result.skipped))
 
-        buf += """
------ Success -----
-%s
-        """ % ('\n'.join(map(str, result.successes)))
-
+        buf += "\n----- Success -----\n{result}".format(result=('\n'.join(map(str, result.successes))))
 
         for elem in [('Failure', result.failures), ('Error', result.errors), ('Skipped', result.skipped)]:
-            buf += """
------ %s -----
-%s
-            """ % (elem[0], '\n\n'.join(map(lambda x: str(x[0]) + ':\n' + x[1], elem[1])))
-
+            buf += "\n\n----- {heading} -----\n".format(heading=elem[0])
+            for (test, err) in elem[1]:
+                logs = ''
+                if hasattr(test, 'logs'):
+                    logs = self.prettify_logs(test.logs) + '\n'
+                buf += "{name}:\n{err}\n{logs}".format(name=str(test), err=err, logs=logs)
         return buf
 
 
@@ -76,6 +86,11 @@ class JubaTestXunitReporter(JubaTestReporter):
                     stdout = doc.createElement('system-out')
                     node.appendChild(stdout)
                     stdout.appendChild(doc.createTextNode(_setMeasurementForPlot(doc, record)))
+            if hasattr(test, 'logs'):
+                logs = self.prettify_logs(test.logs)
+                stderr = doc.createElement('system-err')
+                node.appendChild(stderr)
+                stderr.appendChild(doc.createTextNode(logs))
             return node
 
         def _testcase_notok(doc, test, msg, result):

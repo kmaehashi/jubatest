@@ -17,6 +17,7 @@ class JubaTestFixtureFailedError(JubaTestException):
 class JubaTestCase(unittest.TestCase):
     def __init__(self, *args, **kwds):
         self._record = None
+        self.attachLogs = False
         super(JubaTestCase, self).__init__(*args, **kwds)
 
     def assertRunsWithin(self, timeout, func, *args, **kwds):
@@ -93,12 +94,15 @@ class _JubaTestResult(unittest.TestResult):
         super(_JubaTestResult, self).addSuccess(test)
 
     def addError(self, test, err):
+        test.attachLogs = True
         super(_JubaTestResult, self).addError(test, err)
 
     def addFailure(self, test, err):
+        test.attachLogs = True
         super(_JubaTestResult, self).addFailure(test, err)
 
     def addUnexpectedSuccess(self, test):
+        test.attachLogs = True
         super(_JubaTestResult, self).addUnexpectedSuccess(test, err)
 
     def stop(self):
@@ -152,7 +156,7 @@ class _JubaTestSuite(unittest.TestSuite):
                     if tearDownClassMethod:
                         tearDownClassMethod()
                 finally:
-                    env.finalize_test_class()
+                    env.finalize_test_class(cls)
             return tearDownClass
         for test in self:
             if issubclass(test.__class__, JubaTestCase):
@@ -167,5 +171,5 @@ class _JubaTestSuite(unittest.TestSuite):
                     tearDownClassMethod = getattr(test.__class__, 'tearDownClass', None)
                     setattr(test.__class__, 'tearDownClass', _wrapTearDownClassMethod(tearDownClassMethod))
                 # add cleanUp
-                test.addCleanup(env.finalize_test_case)
+                test.addCleanup(env.finalize_test_case, test)
         super(_JubaTestSuite, self).run(*args, **kwds)

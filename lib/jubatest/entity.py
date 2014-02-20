@@ -101,19 +101,34 @@ class JubaTestEnvironment(object):
         log.debug('loaded environment configuration: %s', config)
         return env
 
-    def finalize_test_case(self):
+    def get_rpc_servers(self):
+        return self._rpc_servers
+
+    def finalize_test_case(self, testCase):
+        # check servers still running
         for rpc_server in self._rpc_servers:
             if rpc_server.is_running():
                 log.warning('{c} is still running! stopping anyway...'.format(c=rpc_server.__class__.__name__))
                 rpc_server.stop()
 
+        # check leaked ports
         for number in self._nodes:
             node = self._nodes[number]
             ports_used = node.ports_used()
             if ports_used != 0:
                 log.warning('%d leaked port(s) detected on node %d (%s)', ports_used, number, node.get_host())
 
-    def finalize_test_class(self):
+        # attach logs for failed tests
+        if testCase.attachLogs:
+            attach_logs = []
+            for rpc_server in self._rpc_servers:
+                kind = rpc_server.__class__.__name__
+                (host, port) = rpc_server.get_host_port()
+                log_raw = rpc_server.log_raw()
+                attach_logs.append((kind, host, port, log_raw))
+            testCase.logs = attach_logs
+
+    def finalize_test_class(self, testClass):
         log.debug('{count} RPC fixtures used for this test class'.format(count=len(self._rpc_servers)))
         self._rpc_servers = []
 
@@ -491,6 +506,14 @@ class JubaRPCServer(object):
         Returns LogFilter for this RPC server.
         """
         return self._get_log_filter()
+
+    def log_raw(self):
+        """
+        Returns raw log.
+        """
+        if self.backend and self.backend.stderr is not None:
+            return self.backend.stderr
+        raise JubaTestAssertionError('no log data collected (maybe the server is not stopped yet?)')
 
     def _get_log_filter(self):
         if self.backend and self.backend.stderr:
