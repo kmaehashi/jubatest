@@ -11,10 +11,6 @@ import time
 from .logger import log
 from .exceptions import JubaTestException
 
-class _DevNull(object):
-    def write(self, *args, **kwds):
-        pass
-
 class JubaTestFixtureFailedError(JubaTestException):
     pass
 
@@ -36,18 +32,42 @@ class JubaTestCase(unittest.TestCase):
     def get_record(self):
         return self._record
 
-class JubaTestRunner(unittest.TextTestRunner):
-    def __init__(self, *args, **kwds):
-        unittest.installHandler()
-        super(JubaTestRunner, self).__init__(stream=_DevNull(), resultclass=JubaTestResult, *args, **kwds)
-
 class JubaSkipTest(unittest.SkipTest):
     pass
 
-class JubaTestResult(unittest.TestResult):
+def get_loader(e):
+    class JubaTestLoaderBoundToEnv(_JubaTestLoader):
+        env = e
+    return JubaTestLoaderBoundToEnv
+
+def get_suite(e):
+    class JubaTestSuiteBoundToEnv(_JubaTestSuite):
+        env = e
+    return JubaTestSuiteBoundToEnv
+
+def get_runner(e):
+    class JubaTestRunnerBoundToEnv(_JubaTestRunner):
+        env = e
+    return JubaTestRunnerBoundToEnv
+
+def get_result(e):
+    class JubaTestResultBoundToEnv(_JubaTestResult):
+        env = e
+    return JubaTestResultBoundToEnv
+
+class _JubaTestRunner(unittest.TextTestRunner):
+    class DevNull(object):
+        def write(self, *args, **kwds):
+            pass
+
+    def __init__(self, *args, **kwds):
+        unittest.installHandler()
+        super(_JubaTestRunner, self).__init__(stream=self.DevNull(), resultclass=get_result(self.env), *args, **kwds)
+
+class _JubaTestResult(unittest.TestResult):
     def __init__(self, *args, **kwds):
         self.successes = []
-        super(JubaTestResult, self).__init__(*args, **kwds)
+        super(_JubaTestResult, self).__init__(*args, **kwds)
 
     def startTest(self, test):
         """
@@ -55,7 +75,7 @@ class JubaTestResult(unittest.TestResult):
         """
         log.info('test started: %s', test)
         self._timer = time.time()
-        super(JubaTestResult, self).startTest(test)
+        super(_JubaTestResult, self).startTest(test)
 
     def stopTest(self, test):
         """
@@ -63,20 +83,29 @@ class JubaTestResult(unittest.TestResult):
         """
         log.info('test stopped: %s', test)
         test.timeTaken = time.time() - self._timer
-        super(JubaTestResult, self).stopTest(test)
+        super(_JubaTestResult, self).stopTest(test)
 
     def addSuccess(self, test):
         """
         unittest.TestResult does not record success tests, but we need them.
         """
         self.successes.append(test)
-        super(JubaTestResult, self).addSuccess(test)
+        super(_JubaTestResult, self).addSuccess(test)
+
+    def addError(self, test, err):
+        super(_JubaTestResult, self).addError(test, err)
+
+    def addFailure(self, test, err):
+        super(_JubaTestResult, self).addFailure(test, err)
+
+    def addUnexpectedSuccess(self, test):
+        super(_JubaTestResult, self).addUnexpectedSuccess(test, err)
 
     def stop(self):
         log.warn('stopping test!')
-        super(JubaTestResult, self).stop()
+        super(_JubaTestResult, self).stop()
 
-class JubaTestLoader(unittest.TestLoader):
+class _JubaTestLoader(unittest.TestLoader):
     """
     Test classes inheriting JubaTestCase class may have a classmethod called
     `generateTests`, which takes 1 argument (JubaTestEnvironment instance).
@@ -93,10 +122,10 @@ class JubaTestLoader(unittest.TestLoader):
                 args = generatedTest[1:]
                 name = '%s:%s%s' % (self.testMethodPrefix, func.__name__, str(args))
                 setattr(testCaseClass, name, lambda s, func=func, args=args: func(s, *args))
-        loaded_suite = super(JubaTestLoader, self).loadTestsFromTestCase(testCaseClass)
+        loaded_suite = super(_JubaTestLoader, self).loadTestsFromTestCase(testCaseClass)
         return loaded_suite
 
-class JubaTestSuite(unittest.TestSuite):
+class _JubaTestSuite(unittest.TestSuite):
     """
     Test classes inheriting JubaTestCase class may have a classmethod called
     `setUpCluster`, which takes 1 argument (JubaTestEnvironment instance).
@@ -139,20 +168,4 @@ class JubaTestSuite(unittest.TestSuite):
                     setattr(test.__class__, 'tearDownClass', _wrapTearDownClassMethod(tearDownClassMethod))
                 # add cleanUp
                 test.addCleanup(env.finalize_test_case)
-        super(JubaTestSuite, self).run(*args, **kwds)
-
-def get_loader(e):
-    """
-    Bind the global test environment to the test loader class and return it.
-    """
-    class JubaTestLoaderBoundToEnv(JubaTestLoader):
-        env = e
-    return JubaTestLoaderBoundToEnv
-
-def get_suite(e):
-    """
-    Bind the global test environment to the test suite class and return it.
-    """
-    class JubaTestSuiteBoundToEnv(JubaTestSuite):
-        env = e
-    return JubaTestSuiteBoundToEnv
+        super(_JubaTestSuite, self).run(*args, **kwds)

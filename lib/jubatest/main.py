@@ -8,7 +8,7 @@ import traceback
 from .logger import setup_logger, log
 from .entity import JubaTestEnvironment
 from .reporter import JubaTestTextReporter, JubaTestXunitReporter
-from .unit import JubaTestRunner, get_loader, get_suite
+from .unit import get_runner, get_loader, get_suite
 
 class JubaTest(object):
     def main(self, args):
@@ -63,7 +63,7 @@ class JubaTest(object):
 
             # run tests
             log.debug('starting test run')
-            result = JubaTestRunner().run(tests)
+            result = get_runner(env)().run(tests)
 
             log.info('completed test session')
 
