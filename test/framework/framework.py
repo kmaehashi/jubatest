@@ -90,3 +90,30 @@ class FrameworkTest(JubaTestCase):
         # parse log
         logs = keeper1.log().level(LogLevel.INFO).message('start listening at port').get()
         self.assertEqual(1, len(logs))
+
+    def test_stop_kill(self):
+        # node
+        node0 = self.env.get_node(0)
+
+        # test server
+        server1 = self.env.server_standalone(node0, CLASSIFIER, default_config(CLASSIFIER))
+
+        # start and stop the server
+        server1.start()
+        server1.stop()
+
+        # parse log
+        logs = server1.log().level(LogLevel.INFO).message('stopping RPC server').get()
+        self.assertEqual(1, len(logs))
+
+        # start and stop the server
+        server1.start()
+        server1.stop()
+
+        # start and kill the server
+        server1.start()
+        server1.kill()
+
+        # parse log
+        logs = server1.log().level(LogLevel.INFO).message('stopping RPC server').get()
+        self.assertEqual(0, len(logs))

@@ -449,6 +449,17 @@ class JubaRPCServer(object):
         self._backend.stop()
         self.node.free_port(self.port)
 
+    def kill(self):
+        """
+        Stops the RPC server using SIGKILL to simulate unexpected server down.
+        """
+        if not self.is_running():
+            raise JubaTestFixtureFailedError('this instance is not running')
+
+        log.debug('stopping remote process with SIGKILL')
+        self._backend.stop('KILL')
+        self.node.free_port(self.port)
+
     def is_running(self):
         """
         Tests if the backed process is still running.
