@@ -417,6 +417,7 @@ class JubaRPCServer(object):
         ]
         flat_opts = self._flatten_options(options2)
         self._backend = self.node.get_process([self.program()] + flat_opts)
+        self._log_filter = None
 
         log.debug('starting remote process')
         self._backend.start()
