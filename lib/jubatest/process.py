@@ -63,7 +63,7 @@ class LocalSubprocess(object):
                 raise e
             # may be a race between poll and signal; just ignore
             log.debug('race between poll and signal detected')
-        (self.stdout, self.stderr) = self._process.communicate(stdin)
+        (self.stdout, self.stderr) = self._process.communicate()
         return True
 
     def is_running(self):
