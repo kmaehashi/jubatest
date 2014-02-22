@@ -47,7 +47,7 @@ class Log:
             return
         raise JubaTestAssertionError('invalid log format: %s' % line)
 
-    def __str__(self):
+    def __repr__(self):
         # TODO refine
         return ("Log Type: %s\n" % self.type) + \
                ("Log Level: %s\n" % self.level) + \
