@@ -9,8 +9,8 @@ from .exceptions import JubaTestException
 _ssh_command = ['ssh', '-q']
 _scp_command = ['scp', '-q']
 
-# ssh sends HUP to remote process on receiveing TERM, so wrap it as TERM
-_command_wait_suffix = [ '&', '{', 'read', ';', 'pkill', '-TERM', '-P$$', ';', 'wait', ';', '}', '&>', '/dev/null' ]
+# ssh sends HUP to remote process on receiveing TERM, so wrap it as the signal given via stdin
+_command_wait_suffix = [ '&', '{', 'read', ';', 'pkill', '-${REPLY}', '-P$$', ';', 'wait', ';', '}', '&>', '/dev/null' ]
 
 class SyncRemoteProcess(object):
     """
@@ -67,5 +67,5 @@ class AsyncRemoteProcess(LocalSubprocess):
     def wait(self):
         raise NotImplementedError('cannot wait for remote processes')
 
-    def stop(self):
-        super(AsyncRemoteProcess, self).wait('\n')
+    def stop(self, signal='TERM'):
+        super(AsyncRemoteProcess, self).wait(signal + '\n')
