@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import time
+import os
 
 from .process import LocalSubprocess
 from .exceptions import JubaTestException
@@ -27,12 +28,12 @@ class SyncRemoteProcess(object):
 
     @classmethod
     def get_file(cls, from_host, from_file, to_file):
-        args = _scp_command + [from_host + ':' + from_file, to_file]
+        args = _scp_command + [from_host + ':' + from_file, os.path.abspath(to_file)]
         cls._run(args)
 
     @classmethod
     def put_file(cls, to_host, from_file, to_file):
-        args = _scp_command + [from_file, to_host + ':' + to_file]
+        args = _scp_command + [os.path.abspath(from_file), to_host + ':' + to_file]
         cls._run(args)
 
     @classmethod
