@@ -250,7 +250,7 @@ class JubaCluster(object):
         if not self._is_command_available('jubaconfig'):
             raise JubaSkipTest('jubaconfig command is not available')
         log.debug('configuring cluster with jubaconfig')
-        args = ['jubaconfig', '--cmd', 'write', '--file', '/dev/stdin', '--type', self.service, '--name', self.name, '--zookeeper', self.zk]
+        args = ['jubaconfig', '--debug', '--cmd', 'write', '--file', '/dev/stdin', '--type', self.service, '--name', self.name, '--zookeeper', self.zk]
         proc = LocalSubprocess(args)
         proc.start()
         if proc.wait(json.dumps(self.config)) != 0:
