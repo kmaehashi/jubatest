@@ -16,12 +16,14 @@ Requirements
 
 * SSH Server/Client
 
+  * Test nodes are expected to be accessible via SSH/SCP without interactive authentication, and the login shell is set to bash or zsh.
+
 Overview
 ------------
 
 Basically, JTF is a extension of unittest module that comes with Python.
-JTF conceals the messy things regarding Jubatus cluster setup; just define the cluster configuration, and write test cases.
-The framework automatically runs servers/keepers via SSH on the host you specified and collect logs.
+JTF conceals the messy things regarding test fixture setup; just define the cluster configuration, and write test cases.
+The framework automatically configures cluster, start/stop server/proxy processes via SSH on the host you specified and collect logs.
 
 Test results are formatted in xUnit-compatible XML, so that you can easily integrate tests with continuous integration systems of your choice.
 
@@ -36,11 +38,21 @@ Environment Definition File
   See ``envdef.py`` for the example.
 
 Nodes
-  Nodes are logical (either physical or virtual) server where the server/keeper process runs on, identified by IP addresses.
+  Nodes are logical (either physical or virtual) server where the server/proxy processes runs on, identified by IP addresses.
 
 Test Parameters
   Test parameters are pairs of key-values passed to test cases, defined in Environment Definition File.
-  You can localize the environment-specific values such as the path to datasets, then later refer to the value in test cases.
+  To make your test case portable, define environment-specific values like path to datasets as Test Parameters and later refer to the value in test cases.
+
+Quick Start
+---------------
+
+To see how jubatest work:
+
+::
+
+  $ source ./profile
+  $ jubatest --config ./envdef.py --testcase ./test/unit
 
 Other Resources
 ------------------
