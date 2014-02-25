@@ -89,7 +89,6 @@ class JubaTest(object):
             log.error('exception: %s (%s)\n%s', e.__class__.__name__, str(e.args), traceback.format_exc())
 
         finally:
-            log.info('end')
             return retval
 
 class JubaTestUtil(object):
