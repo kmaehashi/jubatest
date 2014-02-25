@@ -34,6 +34,14 @@ class LocalSubprocessTest(JubaTestCase):
         p = LocalSubprocess(['echo', '-n', 'foo'])
         self.assertRaises(JubaTestFixtureFailedError, p.stop)
 
+    def test_kill(self):
+        p = LocalSubprocess(['sleep', '100'])
+        p.start()
+        rawp = p._process
+        p = None # run destructor
+        time.sleep(1)
+        self.assertIsNotNone(rawp.poll())
+
     def test_wait(self):
         p = LocalSubprocess(['sleep', '1'])
         p.start()

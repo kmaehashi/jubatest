@@ -27,6 +27,15 @@ class LocalSubprocess(object):
         self._process = None
         self._started = False
 
+    def __del__(self):
+        """
+        Process should be stopped before destruction.
+        """
+        p = self._process
+        if p is not None and p.poll() is None:
+            log.warning('process is still running! KILLing... %s', self.args)
+            p.kill()
+
     def start(self):
         """
         Invokes process.
