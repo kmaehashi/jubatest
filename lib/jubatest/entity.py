@@ -159,7 +159,7 @@ class JubaTestEnvironment(object):
             ('--zookeeper', self._zkargs()),
         ]
         server = JubaServer(node, cluster.service, cluster.name, options2)
-        cluster.servers += [server]
+        cluster._servers += [server]
         self._rpc_servers.append(server)
         return server
 
@@ -233,17 +233,20 @@ class JubaCluster(object):
         self.config = config
         self.name = name
         self.zk = zk
-        self.servers = []
+        self._servers = []
         self.configure()
+
+    def get_servers(self):
+        return self._servers
 
     def start(self):
         # start all servers
-        for server in self.servers:
+        for server in self._servers:
             server.start()
 
     def stop(self):
         # stop all servers
-        for server in self.servers:
+        for server in self._servers:
             server.stop()
 
     def configure(self):
