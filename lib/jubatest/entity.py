@@ -690,20 +690,22 @@ class JubaProxy(JubaRPCServer):
     """
 
     def wait_for_servers(self, *servers):
-        # poll for every 1 second, timeout in 5 seconds
+        # poll for every 1 second, timeout in 16 seconds
         log.debug('waiting for servers to be registered: %d' % len(servers))
         (server_id, cluster_name) = ('', '')
-        for delay in [0] + [1] * 5:
+        for delay in [0] + [1] * 16:
             time.sleep(delay)
             for server in servers:
                 server_id = server.get_id()
                 cluster_name = server.name
-                if not server_id in self.get_cluster_members(server):
+                members = self.get_cluster_members(server)
+                if not server_id in members:
                     log.debug('member %s in cluster %s not registered yet', server_id, cluster_name)
                     break
             else:
                 log.debug('all servers ready')
                 return
+        log.warning('wait timed-out for member %s! members: %s', server_id, members)
         raise JubaTestFixtureFailedError('wait timed-out for member %s in cluster %s' % (server_id, cluster_name))
 
     def get_cluster_members(self, cluster):
