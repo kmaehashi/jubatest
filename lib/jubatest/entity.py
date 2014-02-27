@@ -414,13 +414,13 @@ class JubaRPCServer(object):
         if self.is_running():
             raise JubaTestFixtureFailedError('this instance is already running')
 
+        self.reset()
         self.port = self.node.lease_port()
         options2 = self.options + [
             ('--rpc-port', self.port),
         ]
         flat_opts = self._flatten_options(options2)
         self._backend = self.node.get_process([self.program()] + flat_opts)
-        self._log_filter = None
 
         log.debug('starting remote process')
         self._backend.start()
@@ -624,7 +624,7 @@ class JubaServer(JubaRPCServer):
     """
 
     def __init__(self, node, service, name, options):
-        self.server_id = None
+        self._server_id_cache = None
         options2 = options
         if name:
             self.name = name
@@ -634,6 +634,10 @@ class JubaServer(JubaRPCServer):
         else:
             self.name = ''
         super(JubaServer, self).__init__(node, service, options2)
+
+    def reset(self):
+        self._server_id_cache = None
+        super(JubaServer, self).reset()
 
     def cluster_name(self):
         return self.name
@@ -645,16 +649,16 @@ class JubaServer(JubaRPCServer):
         """
         ID is a server identifier in form of "${IP}_${PORT}".
         """
-        if self.server_id:
-            log.debug('reusing cached server ID = %s', self.server_id)
-            return self.server_id
+        if self._server_id_cache:
+            log.debug('reusing cached server ID = %s', self._server_id_cache)
+            return self._server_id_cache
 
         log.debug('sending request: server ID')
         cli = msgpackrpc.Client(msgpackrpc.Address(self.node.get_host(), self.port))
         server_id = cli.call('get_status', '').popitem()[0]
         cli.close()
         log.debug('got reply: server ID = %s', server_id)
-        self.server_id = server_id
+        self._server_id_cache = server_id
         return server_id
 
     def get_saved_model(self, model_id):
