@@ -142,6 +142,7 @@ class _JubaTestSuite(unittest.TestSuite):
         def _wrapSetUpClassMethod(setUpClassMethod):
             @classmethod
             def setUpClass(cls):
+                env.initialize_test_class(cls)
                 if getattr(cls, 'setUpCluster', None):
                     cls.setUpCluster(env)
                 if setUpClassMethod:

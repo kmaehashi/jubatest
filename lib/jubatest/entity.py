@@ -133,8 +133,12 @@ class JubaTestEnvironment(object):
         for rpc_server in self._rpc_servers:
             rpc_server.reset()
 
+    def initialize_test_class(self, testClass):
+        log.info('test class started: {}.{}'.format(testClass.__module__, testClass.__name__))
+
     def finalize_test_class(self, testClass):
-        log.debug('{count} RPC fixtures used for this test class'.format(count=len(self._rpc_servers)))
+        log.debug('{} RPC fixtures used'.format(len(self._rpc_servers)))
+        log.info('test class completed: {}.{}'.format(testClass.__module__, testClass.__name__))
         self._rpc_servers = []
 
     #########################################################################
