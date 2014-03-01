@@ -64,10 +64,7 @@ class JubaTestEnvironment(object):
                 exec(compile(script, 'env', 'exec'))
             except SyntaxError as e:
                 env.env = None
-                log.error('syntax error in environment configuration %s on line %d, at char %d: %s', config, e.lineno, e.offset, e.text)
-            except IOError as e:
-                env.env = None
-                log.error('error when loading environment configuration %s: %s (%s)', config, e.__class__.__name__, str(e.args))
+                log.error('syntax error in environment configuration on line %d, at char %d: %s', e.lineno, e.offset, e.text)
             return env.env
 
         def node(self, host, ports):
@@ -96,8 +93,12 @@ class JubaTestEnvironment(object):
     @staticmethod
     def from_config(config):
         log.debug('loading environment configuration: %s', config)
-        with open(config) as f:
-            env = JubaTestEnvironment.ConfigurationDSL().from_source(f.read())
+        try:
+            with open(config) as f:
+                env = JubaTestEnvironment.ConfigurationDSL().from_source(f.read())
+        except IOError as e:
+            log.error('IO error loading environment configuration: %s', e)
+            return None
         log.debug('loaded environment configuration: %s', config)
         return env
 
