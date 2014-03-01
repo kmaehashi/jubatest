@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import os
 import argparse
 import logging
 import traceback
@@ -19,7 +20,7 @@ class JubaTest(object):
             parser = argparse.ArgumentParser(description='Jubatus Distributed Test')
 
             parser.add_argument('--library',  type=str,                 help='append module search path')
-            parser.add_argument('--config',   type=str, required=True,  help='environment configuration file')
+            parser.add_argument('--config',   type=str, default=None,   help='environment configuration file (default: ${JUBATEST_HOME}/envdef.py')
             parser.add_argument('--testcase', type=str, required=True,  help='directory to look for test cases')
             parser.add_argument('--pattern',  type=str, default='*.py', help='patterns of test case files')
             parser.add_argument('--xunit',    type=str, default=None,   help='path to store xUnit test report')
@@ -27,6 +28,12 @@ class JubaTest(object):
             parser.add_argument('--log-file', type=str, default=None,   help='path to log file')
 
             params = parser.parse_args(args[1:])
+
+            if not params.config:
+                if 'JUBATEST_HOME' in os.environ:
+                    params.config = os.environ['JUBATEST_HOME'] + '/envdef.py'
+                else:
+                    parser.error('neither --config option nor JUBATEST_HOME is specified')
 
             if params.library:
                 sys.path.insert(0, params.library)
