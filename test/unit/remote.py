@@ -50,6 +50,14 @@ class AsyncRemoteProcessTest(JubaTestCase):
         self.assertFalse(p.is_running())
         self.assertEqual('foo', p.stdout)
 
+    def test_destructor(self):
+        p = AsyncRemoteProcess('localhost', ['sleep', '120'], [])
+        p.start()
+        rawp = p._process
+        p = None # run destructor
+        time.sleep(1)
+        self.assertIsNotNone(rawp.poll())
+
     def test_stop(self):
         def _test():
             p = AsyncRemoteProcess('localhost', ['sleep', '120'], [])

@@ -5,6 +5,7 @@ import os
 
 from .process import LocalSubprocess
 from .exceptions import JubaTestException
+from .logger import log
 
 # ssh command must be invoked with quiet mode
 _ssh_command = ['ssh', '-q']
@@ -58,12 +59,28 @@ class AsyncRemoteProcess(LocalSubprocess):
         Prepares for process invocation.
         `host` can be an entry from ssh_config.
         """
+        self.remote_host = host
+        self.remote_args = args
+        self.remote_envvars = envvars
 
         ssh_args = _ssh_command + [host]
         for envvar in envvars:
             ssh_args += ['export', str(envvar) + '=' + str(envvars[envvar]), ';']
         ssh_args += args + _command_wait_suffix
         super(AsyncRemoteProcess, self).__init__(ssh_args)
+
+    def __del__(self):
+        """
+        Process should be stopped before destruction.
+        """
+        if self.is_running():
+            log.warning('remote process is still running on %s! KILLing... %s', self.remote_host, self.remote_args)
+            self.stop('KILL')
+
+            # Wait for the remote process to be KILLed.
+            # To avoid process to become defunct, we don't want to KILL the local ssh process.
+            time.sleep(3)
+        super(AsyncRemoteProcess, self).__del__()
 
     def wait(self):
         raise NotImplementedError('cannot wait for remote processes')
