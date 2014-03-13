@@ -89,7 +89,7 @@ class _ConfigHolder(object):
         STAT: {
             "window_size": 128
         },
-        NEAREST_NEIGHBOR: {
+        CLUSTERING: {
             "method" : "kmeans",
             "converter": _converter,
             "parameter" : {
@@ -103,8 +103,9 @@ class _ConfigHolder(object):
               "forgetting_threshold" : 0.5
             }
         },
-        CLUSTERING: {
+        NEAREST_NEIGHBOR: {
             "method": "lsh",
+            "converter": _converter,
             "parameter" : {
                 "hash_num" : 64
             }
