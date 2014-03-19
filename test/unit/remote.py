@@ -65,3 +65,9 @@ class AsyncRemoteProcessTest(JubaTestCase):
             time.sleep(3)
             p.stop()
         self.assertRunsWithin(10, _test)
+
+    def test_timeout(self):
+        p = AsyncRemoteProcess('localhost', ['sleep', '120'], [], 1)
+        p.start()
+        time.sleep(5)
+        self.assertFalse(p.is_running())

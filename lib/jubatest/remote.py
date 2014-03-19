@@ -11,9 +11,6 @@ from .logger import log
 _ssh_command = ['ssh', '-q']
 _scp_command = ['scp', '-q']
 
-# ssh sends HUP to remote process on receiveing TERM, so wrap it as the signal given via stdin
-_command_wait_suffix = [ '&', '{', 'read', 'SIG', ';', 'pkill', '-${SIG:-KILL}', '-P$$', ';', 'wait', ';', '}', '&>', '/dev/null' ]
-
 class SyncRemoteProcess(object):
     """
     Provides a simple, synchronized remote process invocation and file transfer interface.
@@ -54,7 +51,7 @@ class AsyncRemoteProcess(LocalSubprocess):
     Provides remote (over-SSH) process invocation intetface.
     """
 
-    def __init__(self, host, args, envvars):
+    def __init__(self, host, args, envvars, timeout=None):
         """
         Prepares for process invocation.
         `host` can be an entry from ssh_config.
@@ -66,7 +63,7 @@ class AsyncRemoteProcess(LocalSubprocess):
         ssh_args = _ssh_command + [host]
         for envvar in envvars:
             ssh_args += ['export', str(envvar) + '=' + str(envvars[envvar]), ';']
-        ssh_args += args + _command_wait_suffix
+        ssh_args += args + self._get_ssh_suffix(timeout)
         super(AsyncRemoteProcess, self).__init__(ssh_args)
 
     def __del__(self):
@@ -87,3 +84,26 @@ class AsyncRemoteProcess(LocalSubprocess):
 
     def stop(self, signal='TERM'):
         super(AsyncRemoteProcess, self).wait(signal + '\n')
+
+    def _get_ssh_suffix(self, timeout):
+        # By default, remote processes receive SIGHUP when the SSH client is
+        # disconnected (i.e., the local `ssh` process received SIGTERM).
+        # However Jubatus processes do not handle SIGHUP; they are immediately
+        # KILLed without closing resources including ZooKeeper connections,
+        # causing the following test cases to (possibly) fail.
+        # This suffix enables test cases to send any signal to the remote
+        # processes.  We can give the signal name via the standard input.
+        # We use `pkill -P$$` to signal all the processes whose Parent PID
+        # is the shell.
+        if timeout:
+            timeout_args = ['-t', str(int(timeout))]
+        else:
+            timeout_args = []
+
+        return [ '&', '{',
+                         'unset', 'SIG', ';',
+                         'read'] + timeout_args + ['SIG', ';',
+                         'pkill', '-${SIG:-KILL}', '-P$$', ';',
+                         'wait', ';',
+                      '}',
+                 '&>', '/dev/null' ]
