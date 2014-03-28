@@ -48,6 +48,7 @@ class JubaTestEnvironment(object):
         self._variables = {}
         self._params = {}
         self._cluster_prefix = ''
+        self._remote_process_timeout = None
         self._generated_clusters = 0
         self._rpc_servers = []
 
@@ -89,6 +90,9 @@ class JubaTestEnvironment(object):
 
         def cluster_prefix(self, prefix):
             self.env._cluster_prefix = prefix
+
+        def remote_process_timeout(self, timeout):
+            self.env._remote_process_timeout = timeout
 
     @staticmethod
     def from_config(config):
@@ -204,7 +208,7 @@ class JubaTestEnvironment(object):
             return self._nodes[number]
         if number < len(self._node_records):
             node_info = self._node_records[number]
-            node = JubaNode(node_info[0], node_info[1], self._prefix, self._workdir, self._variables)
+            node = JubaNode(node_info[0], node_info[1], self._prefix, self._workdir, self._variables, self._remote_process_timeout)
             self._nodes[number] = node
             return node
         raise JubaSkipTest('insufficient number of nodes')
@@ -284,12 +288,13 @@ class JubaNode(object):
     Represents a (physical) test node.
     """
 
-    def __init__(self, host, ports, prefix, workdir, variables):
+    def __init__(self, host, ports, prefix, workdir, variables, remote_process_timeout=None):
         self._host = host
         self._ports = ports
         self._prefix = prefix
         self._workdir = workdir
         self._variables = variables
+        self._remote_process_timeout = remote_process_timeout
         self._free_ports = copy.copy(ports)
 
     def get_host(self):
@@ -374,10 +379,10 @@ class JubaNode(object):
                 tmp_file.close()
 
     def run_process(self, args):
-        return SyncRemoteProcess.run(self._host, args, self._envvars())
+        return SyncRemoteProcess.run(self._host, args, self._envvars(), self._remote_process_timeout)
 
     def get_process(self, args):
-        return AsyncRemoteProcess(self._host, args, self._envvars())
+        return AsyncRemoteProcess(self._host, args, self._envvars(), self._remote_process_timeout)
 
     def _envvars(self):
         envvars2 = {}
