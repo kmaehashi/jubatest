@@ -18,17 +18,11 @@ class LocalSubprocessTest(JubaTestCase):
         self.assertEqual('foo', p.stdout)
         self.assertFalse(p.is_running())
 
-    def test_start_again_fail(self):
-        p = LocalSubprocess(['echo', '-n', 'foo'])
-        p.start()
-        p.stop(True)
-        self.assertRaises(JubaTestFixtureFailedError, p.start)
-
     def test_stop(self):
         p = LocalSubprocess(['sleep', '100'])
         p.start()
         time.sleep(0.5)
-        self.assertTrue(p.stop())
+        p.stop()
 
     def test_stop_before_start_fail(self):
         p = LocalSubprocess(['echo', '-n', 'foo'])
@@ -52,6 +46,6 @@ class LocalSubprocessTest(JubaTestCase):
         p.start()
         self.assertTrue(p.is_running())
         time.sleep(0.5)
-        self.assertTrue(p.stop(True))
+        p.stop(True)
         time.sleep(0.5)
         self.assertFalse(p.is_running())
