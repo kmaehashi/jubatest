@@ -45,6 +45,7 @@ class JubaTestEnvironment(object):
         self._zookeepers = []
         self._prefix = None
         self._workdir = '/tmp'
+        self._assetsdir = None
         self._variables = {}
         self._params = {}
         self._cluster_prefix = ''
@@ -81,6 +82,9 @@ class JubaTestEnvironment(object):
 
         def workdir(self, workdir):
             self.env._workdir = workdir
+
+        def assetsdir(self, assetsdir):
+            self.env._assetsdir = assetsdir
 
         def variable(self, key, value):
             self.env._variables[key] = value
@@ -208,7 +212,7 @@ class JubaTestEnvironment(object):
             return self._nodes[number]
         if number < len(self._node_records):
             node_info = self._node_records[number]
-            node = JubaNode(node_info[0], node_info[1], self._prefix, self._workdir, self._variables, self._remote_process_timeout)
+            node = JubaNode(node_info[0], node_info[1], self._prefix, self._workdir, self._assetsdir, self._variables, self._remote_process_timeout)
             self._nodes[number] = node
             return node
         raise JubaSkipTest('insufficient number of nodes')
@@ -288,11 +292,12 @@ class JubaNode(object):
     Represents a (physical) test node.
     """
 
-    def __init__(self, host, ports, prefix, workdir, variables, remote_process_timeout=None):
+    def __init__(self, host, ports, prefix, workdir, assetsdir, variables, remote_process_timeout=None):
         self._host = host
         self._ports = ports
         self._prefix = prefix
         self._workdir = workdir
+        self._assetsdir = assetsdir
         self._variables = variables
         self._remote_process_timeout = remote_process_timeout
         self._free_ports = copy.copy(ports)
@@ -302,6 +307,9 @@ class JubaNode(object):
 
     def get_workdir(self):
         return self._workdir
+
+    def get_assetsdir(self):
+        return self._assetsdir
 
     def lease_port(self):
         """

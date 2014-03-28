@@ -23,7 +23,8 @@ env.zookeeper('127.0.0.1', 2181)
 ###
 ### Miscellaneous Node Configuration
 ###
-env.workdir('/tmp')
+env.workdir('/tmp/jubatest/work')
+env.assetsdir('/tmp/jubatest/assets')
 env.cluster_prefix('sample')
 #env.remote_process_timeout(300)
 
