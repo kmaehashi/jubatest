@@ -24,10 +24,15 @@ DEFAULT_CONFIG = {
 }
 
 def sleep(sec):
-    log.debug('sleeping for %f seconds' % sec)
-    time.sleep(sec)
+  log.debug('sleeping for %f seconds' % sec)
+  time.sleep(sec)
+
+def get_configs(engine):
+  if engine in CONFIGS:
+    return copy.deepcopy(CONFIGS[engine])
+  raise JubaTestFixtureFailedError('no such engine: %s' % engine)
 
 def default_config(engine):
-    if engine in DEFAULT_CONFIG:
-        return copy.deepcopy(CONFIGS[engine][DEFAULT_CONFIG[engine]])
-    raise JubaTestFixtureFailedError('no such engine: %s' % engine)
+  if engine in CONFIGS:
+    return copy.deepcopy(CONFIGS[engine][DEFAULT_CONFIG[engine]])
+  raise JubaTestFixtureFailedError('no such engine: %s' % engine)
