@@ -18,3 +18,6 @@ test-framework:
 
 test-usecase:
 	PYTHONPATH=lib bin/jubatest --config envdef.py --testcase test/usecase
+
+regenerate-config:
+	util/generate_default_config.py /opt/jubatus/share/jubatus/example/config > lib/jubatest/_jubatus_config.py
