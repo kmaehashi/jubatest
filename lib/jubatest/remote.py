@@ -7,9 +7,8 @@ from .process import LocalSubprocess
 from .exceptions import JubaTestException
 from .logger import log
 
-# ssh command must be invoked with quiet mode
-_ssh_command = ['ssh', '-q']
-_scp_command = ['scp', '-q']
+class RemoteProcessFailedError(JubaTestException):
+    pass
 
 class SyncRemoteProcess(object):
     """
@@ -17,41 +16,43 @@ class SyncRemoteProcess(object):
     """
 
     @classmethod
-    def run(cls, host, args, envvars={}):
-        ssh_args = _ssh_command + [host]
-        for envvar in envvars:
-            ssh_args += ['export', str(envvar) + '=' + str(envvars[envvar]), ';']
-        ssh_args += args
-        return cls._run(ssh_args)
-
-    @classmethod
     def get_file(cls, from_host, from_file, to_file):
-        args = _scp_command + [from_host + ':' + from_file, os.path.abspath(to_file)]
-        cls._run(args)
+        cls._scp(from_host + ':' + from_file, os.path.abspath(to_file))
 
     @classmethod
     def put_file(cls, to_host, from_file, to_file):
-        args = _scp_command + [os.path.abspath(from_file), to_host + ':' + to_file]
-        cls._run(args)
+        cls._scp(os.path.abspath(from_file), to_host + ':' + to_file)
 
     @classmethod
-    def _run(cls, args):
-        process = LocalSubprocess(args)
+    def run(cls, host, args, envvars={}, timeout=None):
+        process = LocalSubprocess(_RemoteUtil.ssh_cmdline(host, args, envvars))
+        process.start()
+        if timeout:
+            for i in range(int(timeout)):
+                if not process.ir_running(): break
+                time.sleep(1)
+            else:
+                process.stop()
+                raise RemoteProcessFailedError('remote process timed out: {}'.format(str(args)))
+        returncode = process.wait()
+        if returncode != 0:
+            raise RemoteProcessFailedError('remote process failed with status {}: {} ({})'.format(returncode, str(args), process.stderr))
+        return process.stdout
+
+    @classmethod
+    def _scp(cls, from_arg, to_arg):
+        process = LocalSubprocess(_RemoteUtil.scp_cmdline(from_arg, to_arg))
         process.start()
         returncode = process.wait()
         if returncode != 0:
-            raise RemoteProcessFailedError('remote process failed with status %d: %s' % (returncode, str(args)))
-        return process.stdout
-
-class RemoteProcessFailedError(JubaTestException):
-    pass
+            raise RemoteProcessFailedError('SCP failed with status {}: {} -> {}'.format(returncode, from_arg, to_arg))
 
 class AsyncRemoteProcess(LocalSubprocess):
     """
     Provides remote (over-SSH) process invocation intetface.
     """
 
-    def __init__(self, host, args, envvars, timeout=None):
+    def __init__(self, host, args, envvars={}, timeout=None):
         """
         Prepares for process invocation.
         `host` can be an entry from ssh_config.
@@ -60,10 +61,7 @@ class AsyncRemoteProcess(LocalSubprocess):
         self.remote_args = args
         self.remote_envvars = envvars
 
-        ssh_args = _ssh_command + [host]
-        for envvar in envvars:
-            ssh_args += ['export', str(envvar) + '=' + str(envvars[envvar]), ';']
-        ssh_args += args + self._get_ssh_suffix(timeout)
+        ssh_args = _RemoteUtil.ssh_cmdline(host, args, envvars) + self._ssh_suffix(timeout)
         super(AsyncRemoteProcess, self).__init__(ssh_args)
 
     def __del__(self):
@@ -80,12 +78,15 @@ class AsyncRemoteProcess(LocalSubprocess):
         super(AsyncRemoteProcess, self).__del__()
 
     def wait(self):
-        raise NotImplementedError('cannot wait for remote processes')
+        """
+        Note: cannot acquire return code when running async process.
+        """
+        super(AsyncRemoteProcess, self).wait('\n')
 
     def stop(self, signal='TERM'):
         super(AsyncRemoteProcess, self).wait(signal + '\n')
 
-    def _get_ssh_suffix(self, timeout):
+    def _ssh_suffix(self, timeout):
         # By default, remote processes receive SIGHUP when the SSH client is
         # disconnected (i.e., the local `ssh` process received SIGTERM).
         # However Jubatus processes do not handle SIGHUP; they are immediately
@@ -93,17 +94,36 @@ class AsyncRemoteProcess(LocalSubprocess):
         # causing the following test cases to (possibly) fail.
         # This suffix enables test cases to send any signal to the remote
         # processes.  We can give the signal name via the standard input.
-        # We use `pkill -P$$` to signal all the processes whose Parent PID
-        # is the shell.
         if timeout:
             timeout_args = ['-t', str(int(timeout))]
         else:
             timeout_args = []
 
-        return [ '&', '{',
-                         'unset', 'SIG', ';',
-                         'read'] + timeout_args + ['SIG', ';',
-                         'pkill', '-${SIG:-KILL}', '-P$$', ';',
-                         'wait', ';',
-                      '}',
-                 '&>', '/dev/null' ]
+        return [
+                 '&', '{',
+                         '_SIG=', ';',
+                         # when read failed (connection disconnect, timeout, etc.), always set KILL.
+                         'read'] + timeout_args + ['_SIG', '||', '{', '_SIG=KILL', ';', 'echo', 'JUBATEST: Process timed out, KILLing', ';', '}', ';'
+                         # if the read signal is not empty, send it to all the process whose Parent PID is the shell.
+                         '[', '-z', '$_{SIG}', ']', '||', 'pkill', '-${_SIG}', '-P$$', ';',
+                         # wait for the subprocesses to complete.
+                         'wait', ';'
+                      '}', '&>', '/dev/stderr', ';',
+               ]
+
+class _RemoteUtil(object):
+    # ssh command must be in quiet mode
+    _SSH = ['ssh', '-q']
+    _SCP = ['scp', '-q']
+
+    @classmethod
+    def ssh_cmdline(cls, host, args, envvars):
+        ssh_args = cls._SSH + [host]
+        for envvar in envvars:
+            ssh_args += ['export', str(envvar) + '=' + str(envvars[envvar]), ';']
+        ssh_args += args
+        return ssh_args
+
+    @classmethod
+    def scp_cmdline(cls, from_arg, to_arg):
+        return cls._SCP + [from_arg, to_arg]
