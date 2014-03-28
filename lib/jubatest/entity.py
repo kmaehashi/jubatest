@@ -455,9 +455,6 @@ class JubaRPCServer(object):
         """
         Stops the RPC server.
         """
-        if not self.is_running():
-            raise JubaTestFixtureFailedError('this instance is not running')
-
         log.debug('stopping remote process')
         self._backend.stop()
         self.node.free_port(self.port)
