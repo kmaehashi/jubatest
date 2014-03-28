@@ -25,7 +25,6 @@ class LocalSubprocess(object):
         self.stdout = None
         self.stderr = None
         self._process = None
-        self._started = False
 
     def __del__(self):
         """
@@ -40,24 +39,32 @@ class LocalSubprocess(object):
         """
         Invokes process.
         """
-        if self._started:
+        if self._process:
             raise JubaTestFixtureFailedError('cannot start again using same instance')
-        self._started = True
         log.debug('starting process: %s', self.args)
         self._process = Popen(self.args, env=self.env, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         log.debug('started process: %s', self.args)
 
     def wait(self, stdin=None):
+        """
+        Wait for the invoked process.
+        When the process is stopped, gather the stdin/stdout.
+        """
+        if not self._process:
+            raise JubaTestFixtureFailedError('this instance has not been started yet')
+
         log.debug('waiting for process to complete: %s', self.args)
         (self.stdout, self.stderr) = self._process.communicate(stdin)
         log.debug('process completed: %s', self.args)
-        return self._process.returncode
+        returncode = self._process.returncode
+        self._process = None
+        return returncode
 
     def stop(self, kill=False):
         """
         Stops (usually TERM, but KILL at your will) the invoked process.
         """
-        if not self._started or not self._process:
+        if not self._process:
             raise JubaTestFixtureFailedError('this instance has not been started yet')
 
         try:
@@ -72,13 +79,14 @@ class LocalSubprocess(object):
                 raise e
             # may be a race between poll and signal; just ignore
             log.debug('race between poll and signal detected')
-        (self.stdout, self.stderr) = self._process.communicate()
-        return True
+        finally:
+            (self.stdout, self.stderr) = self._process.communicate()
+            self._process = None
 
     def is_running(self):
         """
         Returns whether the process we invoked is still running.
         """
-        if self._process.poll() is None:
+        if self._process and self._process.poll() is None:
             return True
         return False
