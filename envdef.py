@@ -25,11 +25,12 @@ env.zookeeper('127.0.0.1', 2181)
 ###
 env.workdir('/tmp')
 env.cluster_prefix('sample')
+#env.remote_process_timeout(300)
 
 ###
 ### Test Parameters
 ###
-basedir = '/home/kenichi/Development'
+basedir = '/home/jubatus/Development'
 env.param('JUBATUS_TUTORIAL_DIR', basedir + '/jubatus-tutorial-python')
 env.param('JUBATUS_BENCH_CLASSIFIER', basedir + '/jubatus-benchmark/jubatus-bench-classifier')
 env.param('JUBATUS_BENCH_CLASSIFIER_DATASET', basedir + '/jubatus-benchmark/url_svmlight/Day0.svm')
