@@ -46,9 +46,6 @@ class _ConfigHolder(object):
         CLASSIFIER: {
             "method": "perceptron",
             "converter": _converter,
-            "parameter": {
-                "regularization_weight": 1.0
-            }
         },
         REGRESSION: {
             "method": "PA",
