@@ -249,10 +249,10 @@ class JubaCluster(object):
         for server in self._servers:
             server.start()
 
-    def stop(self):
+    def stop(self, signal='TERM'):
         # stop all servers
         for server in self._servers:
-            server.stop()
+            server.stop(signal)
 
     def configure(self):
         if not self._is_command_available('jubaconfig'):
@@ -446,7 +446,7 @@ class JubaRPCServer(object):
         finally:
             raise JubaTestFixtureFailedError('failed to start server: stdout = %s, stderr = %s' % (self._backend.stdout, self._backend.stderr))
 
-    def stop(self):
+    def stop(self, signal='TERM'):
         """
         Stops the RPC server.
         """
@@ -454,7 +454,7 @@ class JubaRPCServer(object):
             raise JubaTestFixtureFailedError('this instance is not running')
 
         log.debug('stopping remote process')
-        self._backend.stop()
+        self._backend.stop(signal)
         self.node.free_port(self.port)
 
     def kill(self):
