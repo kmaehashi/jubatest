@@ -58,48 +58,53 @@ class JubaTestEnvironment(object):
         """
 
         def __init__(self):
-            self.env = JubaTestEnvironment()
+            self._env = JubaTestEnvironment()
 
-        def from_source(env, script):
+        def eval(self, script):
             try:
+                env = self
                 exec(compile(script, 'env', 'exec'))
             except SyntaxError as e:
-                env.env = None
+                self._env = None
                 log.error('syntax error in environment configuration on line %d, at char %d: %s', e.lineno, e.offset, e.text)
-            return env.env
+            return self._env
+
+        def include(self, config_file):
+            with open(config_file) as f:
+                self.eval(f.read())
 
         def node(self, host, ports):
             if type(ports) != list:
                 ports = [ports]
-            self.env._node_records += [(host,ports)]
+            self._env._node_records += [(host,ports)]
 
         def zookeeper(self, host, port):
-            self.env._zookeepers += [(host, port)]
+            self._env._zookeepers += [(host, port)]
 
         def prefix(self, prefix):
-            self.env._prefix = prefix
+            self._env._prefix = prefix
 
         def workdir(self, workdir):
-            self.env._workdir = workdir
+            self._env._workdir = workdir
 
         def variable(self, key, value):
-            self.env._variables[key] = value
+            self._env._variables[key] = value
 
         def param(self, key, value):
-            self.env._params[key] = value
+            self._env._params[key] = value
 
         def cluster_prefix(self, prefix):
-            self.env._cluster_prefix = prefix
+            self._env._cluster_prefix = prefix
 
         def remote_process_timeout(self, timeout):
-            self.env._remote_process_timeout = timeout
+            self._env._remote_process_timeout = timeout
 
     @staticmethod
     def from_config(config):
         log.debug('loading environment configuration: %s', config)
         try:
             with open(config) as f:
-                env = JubaTestEnvironment.ConfigurationDSL().from_source(f.read())
+                env = JubaTestEnvironment.ConfigurationDSL().eval(f.read())
         except IOError as e:
             log.error('IO error loading environment configuration: %s', e)
             return None
