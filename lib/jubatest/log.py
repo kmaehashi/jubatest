@@ -15,30 +15,30 @@ class Log:
     Represents one log entry.
     """
 
-    log_glog = re.compile('^([IWEF])(\d{2})(\d{2}) (\d{2}):(\d{2}):(\d{2})\.(\d{6})\s+(\d+) (.+?):(\d+)\] ')
+    log_juba = re.compile('^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2}),(\d{3})\s+(\d+)\s+([A-Z]+)\s+\[(.+?):(\d+)\] ')
     log_zk   = re.compile('^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2}),(\d{3}):(\d+)\((0x[0-9a-f]+)\):ZOO_([A-Z]+)@(.+?)@(\d+): ')
 
     def __init__(self, node, line):
         """
         Creates new log entry for given line and node.
         """
-        m = self.log_glog.match(line)
+        m = self.log_juba.match(line)
         if m:
             self.node = node
             self.type = 'jubatus'
-            self.level = LogLevel.normalize(m.group(1))
-            self.time = datetime(datetime.now().year, int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5)), int(m.group(6)), int(m.group(7)))
+            self.level = LogLevel.normalize(m.group(9))
+            self.time = datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5)), int(m.group(6)), int(m.group(7)) * 1000)
             self.thread_id = int(m.group(8))
-            self.source = m.group(9)
-            self.source_line = m.group(10)
-            self.message = self.log_glog.sub('', line)
+            self.source = m.group(10)
+            self.source_line = m.group(11)
+            self.message = self.log_juba.sub('', line)
             return
         m = self.log_zk.match(line)
         if m:
             self.node = node
             self.type = 'zookeeper'
             self.level = LogLevel.normalize(m.group(10))
-            self.time = datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5)), int(m.group(6)), int(m.group(7)))
+            self.time = datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5)), int(m.group(6)), int(m.group(7)) * 1000)
             self.thread_id = int(m.group(8))
             self.handle = m.group(9)
             self.source = m.group(11)
@@ -66,7 +66,7 @@ class Log:
         lines = logs.splitlines(False)
         while lines:
             line = lines.pop(0)
-            while lines and not ((Log.log_glog.match(lines[0]) or Log.log_zk.match(lines[0]))):
+            while lines and not ((Log.log_juba.match(lines[0]) or Log.log_zk.match(lines[0]))):
                 line += '\n' + lines.pop(0)
             entries += [Log(node, line)]
         return entries
@@ -80,7 +80,7 @@ class LogLevel:
     ERROR = 'ERROR'
     WARN = 'WARN'
     INFO = 'INFO'
-    DEBUG = 'DEBUG' # ZooKeeper only
+    DEBUG = 'DEBUG'
 
     levels = [FATAL, ERROR, WARN, INFO, DEBUG]
 

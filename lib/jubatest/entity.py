@@ -135,7 +135,7 @@ class JubaTestEnvironment(object):
                 if rpc_server.is_used():
                     kind = rpc_server.__class__.__name__
                     (host, port) = rpc_server.get_host_port()
-                    log_raw = rpc_server.log_raw()
+                    log_raw = '\n'.join(rpc_server.log_raw())
                     attach_logs.append((kind, host, port, log_raw))
             testCase.logs = attach_logs
 
@@ -551,19 +551,19 @@ class JubaRPCServer(object):
 
     def log_raw(self):
         """
-        Returns raw log.
+        Returns raw log; tuple of (Jubatus, ZooKeeper) logs.
         """
-        if self._backend and self._backend.stderr is not None:
-            return self._backend.stderr
+        if self._backend and self._backend.stdout is not None and self._backend.stderr is not None:
+            return (self._backend.stdout, self._backend.stderr)
         raise JubaTestAssertionError('no log data collected (maybe the server is not stopped yet?)')
 
     def _get_log_filter(self):
-        if self._backend and self._backend.stderr is not None:
-            if not self._log_filter:
-                self._log_filter = LogFilter(Log.parse_logs(self.node, self._backend.stderr))
-            return self._log_filter
-        log.warning('log data is not available (maybe the server is not stopped yet?)')
-        raise JubaTestAssertionError('no log data collected (maybe the server is not stopped yet?)')
+        (juba_log, zk_log) = self.log_raw()
+        if not self._log_filter:
+            self._log_filter = LogFilter(
+                Log.parse_logs(self.node, juba_log) +
+                Log.parse_logs(self.node, zk_log))
+        return self._log_filter
 
     def is_ready(self):
         """

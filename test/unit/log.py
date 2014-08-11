@@ -8,37 +8,34 @@ from jubatest.exceptions import JubaTestAssertionError
 
 class LogTest(JubaTestCase):
     def test_init_jubalog_all(self):
-        log = Log('localhost', 'I0516 13:58:52.659286 28460 server_util.cpp:217] starting jubaclassifier 0.4.3 RPC server at 192.168.122.211:9199')
+        log = Log('localhost', '2014-05-16 13:58:52,905 28460 INFO  [server_util.cpp:217] starting jubaclassifier 0.4.3 RPC server at 192.168.122.211:9199')
         self.assertEqual('jubatus', log.type)
         self.assertEqual(LogLevel.INFO, log.level)
-        self.assertEqual(datetime(datetime.now().year, 5, 16, 13, 58, 52, 659286), log.time)
+        self.assertEqual(datetime(2014, 5, 16, 13, 58, 52, 905000), log.time)
         self.assertEqual(28460, log.thread_id)
         self.assertEqual('server_util.cpp', log.source)
         self.assertEqual('217', log.source_line)
         self.assertEqual('starting jubaclassifier 0.4.3 RPC server at 192.168.122.211:9199', log.message)
 
     def test_init_jubalog_loglevels(self):
-        log = Log('localhost', 'I0516 13:58:52.659286 28460 server_util.cpp:217] starting jubaclassifier 0.4.3 RPC server at 192.168.122.211:9199')
-        self.assertEqual(LogLevel.INFO, log.level)
-
-        log = Log('localhost', 'W0516 13:58:52.659286 28460 server_util.cpp:217] starting jubaclassifier 0.4.3 RPC server at 192.168.122.211:9199')
+        log = Log('localhost', '2014-05-16 13:58:52,905 28460 WARN  [server_util.cpp:217] starting jubaclassifier 0.4.3 RPC server at 192.168.122.211:9199')
         self.assertEqual(LogLevel.WARN, log.level)
 
-        log = Log('localhost', 'E0516 13:58:52.659286 28460 server_util.cpp:217] starting jubaclassifier 0.4.3 RPC server at 192.168.122.211:9199')
+        log = Log('localhost', '2014-05-16 13:58:52,905 28460 ERROR [server_util.cpp:217] starting jubaclassifier 0.4.3 RPC server at 192.168.122.211:9199')
         self.assertEqual(LogLevel.ERROR, log.level)
 
-        log = Log('localhost', 'F0516 13:58:52.659286 28460 server_util.cpp:217] starting jubaclassifier 0.4.3 RPC server at 192.168.122.211:9199')
+        log = Log('localhost', '2014-05-16 13:58:52,905 28460 FATAL [server_util.cpp:217] starting jubaclassifier 0.4.3 RPC server at 192.168.122.211:9199')
         self.assertEqual(LogLevel.FATAL, log.level)
 
     def test_init_jubalog_multiline(self):
-        log = Log('localhost', '''I0516 13:58:52.659286 28460 server_util.cpp:217] hello world\nhello world''')
+        log = Log('localhost', '''2014-05-16 13:58:52,905 28460 FATAL [server_util.cpp:217] hello world\nhello world''')
         self.assertEqual('hello world\nhello world', log.message)
 
     def test_init_zklog_all(self):
         log = Log('localhost', '2013-05-16 13:58:52,659:28460(0x7f02e99b7740):ZOO_INFO@log_env@712: Client environment:zookeeper.version=zookeeper C client 3.4.5')
         self.assertEqual('zookeeper', log.type)
         self.assertEqual(LogLevel.INFO, log.level)
-        self.assertEqual(datetime(2013, 5, 16, 13, 58, 52, 659), log.time)
+        self.assertEqual(datetime(2013, 5, 16, 13, 58, 52, 659000), log.time)
         self.assertEqual(28460, log.thread_id)
         self.assertEqual('log_env', log.source)
         self.assertEqual('712', log.source_line)
@@ -75,7 +72,6 @@ class LogTest(JubaTestCase):
 
 class LogLevelTest(JubaTestCase):
     def test_levels(self):
-        self.assertEqual(LogLevel.INFO, LogLevel.normalize('I'))
         self.assertEqual(LogLevel.INFO, LogLevel.normalize('INFO'))
         self.assertEqual(LogLevel.WARN, LogLevel.normalize('WARN'))
 
@@ -129,6 +125,6 @@ class LogFilterTest(JubaTestCase):
 
 sample_log = """\
 2013-05-16 13:58:52,778:28460(0x7f02e4b03700):ZOO_INFO@check_events@1750: session establishment complete on server [127.0.0.1:2181], sessionId=0x13d8bcf02a2003b, negotiated timeout=10000
-I0516 13:58:52.926477 28460 server_util.cpp:65] load config from zookeeper: localhost:2181
-E0516 13:58:52.927134 28460 server_util.cpp:54] config is not exists: /jubatus/config/classifier/hoge
+2014-08-11 15:07:15,924 5951 INFO  [server_util.cpp:93] load config from zookeeper: localhost:2181
+2014-08-11 15:07:15,925 5951 ERROR [server_util.cpp:81] exception when loading config file: Dynamic exception type: jubatus::core::common::exception::runtime_error::what: config does not exist: /jubatus/config/classifier/test
 """
