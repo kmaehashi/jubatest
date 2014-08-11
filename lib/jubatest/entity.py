@@ -675,7 +675,9 @@ class JubaServer(JubaRPCServer):
 
     def get_saved_model(self, model_id):
         log.debug('sending request: saved model ID %s', model_id)
-        model_file = self.node.get_file(self.node.get_workdir() + '/' + self.get_id() + '_jubatus_' + model_id + '.jubatus')
+        model_file = self.node.get_file(
+            self.node.get_workdir() + '/' +
+            self.get_id() + '_' + self.service + '_' + model_id + '.jubatus')
         log.debug('got reply: saved model ID %s', model_id)
         return model_file
 

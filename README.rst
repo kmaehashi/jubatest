@@ -6,7 +6,7 @@ Jubatus Testing Framework (JTF) provides a framework to write tests against Juba
 Requirements
 ---------------
 
-* Jubatus 0.5.x
+* Jubatus 0.6.x
 
 * Python 2.7.3 + Jubatus Python Client 0.5.x
 
