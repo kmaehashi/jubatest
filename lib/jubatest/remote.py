@@ -61,7 +61,7 @@ class AsyncRemoteProcess(LocalSubprocess):
         self.remote_args = args
         self.remote_envvars = envvars
 
-        ssh_args = _RemoteUtil.ssh_cmdline(host, args, envvars) + self._ssh_suffix(timeout)
+        ssh_args = _RemoteUtil.ssh_jobcontrol_cmdline(host, args, envvars, timeout)
         super(AsyncRemoteProcess, self).__init__(ssh_args)
 
     def __del__(self):
@@ -79,21 +79,40 @@ class AsyncRemoteProcess(LocalSubprocess):
 
     def wait(self):
         """
-        Note: cannot acquire return code when running async process.
+        Note: cannot acquire return code when running async process,
+        as job-controlled SSH command line uses `wait` which always returns 0.
         """
         super(AsyncRemoteProcess, self).wait('\n')
 
     def stop(self, signal='TERM'):
         super(AsyncRemoteProcess, self).wait(signal + '\n')
 
-    def _ssh_suffix(self, timeout):
-        # By default, remote processes receive SIGHUP when the SSH client is
-        # disconnected (i.e., the local `ssh` process received SIGTERM).
-        # However Jubatus processes do not handle SIGHUP; they are immediately
-        # KILLed without closing resources including ZooKeeper connections,
-        # causing the following test cases to (possibly) fail.
-        # This suffix enables test cases to send any signal to the remote
-        # processes.  We can give the signal name via the standard input.
+class _RemoteUtil(object):
+    @classmethod
+    def ssh_cmdline(cls, host, args, envvars):
+        ssh_args = []
+        for envvar in envvars:
+            ssh_args += ['export', str(envvar) + '=' + str(envvars[envvar]), ';']
+        ssh_args += args
+        return ['ssh', '-q', host] + ssh_args
+
+    @classmethod
+    def ssh_jobcontrol_cmdline(cls, host, args, envvars, timeout=None):
+        return cls.ssh_cmdline(host, args, envvars) + cls._ssh_jobcontrol_suffix(timeout)
+
+    @classmethod
+    def _ssh_jobcontrol_suffix(cls, timeout=None):
+        """
+        By default, remote processes receive SIGHUP when the SSH client is
+        disconnected (i.e., the local `ssh` process is terminated).
+        However, when Jubatus processes receive SIGHUP; they:
+          - immediately be KILLed without closing resources
+            including ZooKeeper connections (prior to Jubatus 0.6.1)
+          - reload the log config and continue working (Jubatus 0.6.2 or later)
+        ... both causing the following test cases to (possibly) fail.
+        This suffix enables test cases to send any signal to the remote
+        processes.  We can give the signal name via the standard input.
+        """
         if timeout:
             timeout_args = ['-t', str(int(timeout))]
         else:
@@ -101,29 +120,15 @@ class AsyncRemoteProcess(LocalSubprocess):
 
         return [
                  '&', '{',
-                         '_SIG=', ';',
-                         # when read failed (connection disconnect, timeout, etc.), always set KILL.
-                         'read'] + timeout_args + ['_SIG', '||', '{', '_SIG=KILL', ';', 'echo', 'JUBATEST: Process timed out, KILLing', ';', '}', ';'
-                         # if the read signal is not empty, send it to all the process whose Parent PID is the shell.
-                         '[', '-z', '$_{SIG}', ']', '||', 'pkill', '-${_SIG}', '-P$$', ';',
-                         # wait for the subprocesses to complete.
-                         'wait', ';'
-                      '}', '&>', '/dev/stderr', ';',
+                       # when read failed (connection disconnect, timeout, etc.), always set KILL.
+                       'read'] + timeout_args + ['_SIG', '||', '{', '_SIG=KILL', ';', 'echo', 'JUBATEST: Process timed out, KILLing', ';', '}', ';'
+                       # if the read signal is not empty, send it to all the process whose Parent PID is the shell.
+                       '[', '-z', '${_SIG}', ']', '||', 'pkill', '-${_SIG}', '-P$$', ';',
+                       # wait for the subprocesses to complete.
+                       'wait', ';'
+                 '}', '&>', '/dev/stderr',
                ]
-
-class _RemoteUtil(object):
-    # ssh command must be in quiet mode
-    _SSH = ['ssh', '-q']
-    _SCP = ['scp', '-q']
-
-    @classmethod
-    def ssh_cmdline(cls, host, args, envvars):
-        ssh_args = cls._SSH + [host]
-        for envvar in envvars:
-            ssh_args += ['export', str(envvar) + '=' + str(envvars[envvar]), ';']
-        ssh_args += args
-        return ssh_args
 
     @classmethod
     def scp_cmdline(cls, from_arg, to_arg):
-        return cls._SCP + [from_arg, to_arg]
+        return ['scp', '-q', from_arg, to_arg]
