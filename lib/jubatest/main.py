@@ -17,7 +17,7 @@ class JubaTest(object):
         log_levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR']
 
         try:
-            parser = argparse.ArgumentParser(description='Jubatus Distributed Test')
+            parser = argparse.ArgumentParser(description='Jubatus Testing Framework')
 
             parser.add_argument('--library',  type=str,                 help='append module search path')
             parser.add_argument('--config',   type=str, default=None,   help='environment configuration file (default: ${JUBATEST_HOME}/envdef.py')
@@ -102,7 +102,7 @@ class JubaTestUtil(object):
     def main(self, args):
         retval = 0
         try:
-            parser = argparse.ArgumentParser(description='Jubatus Distributed Test Utility')
+            parser = argparse.ArgumentParser(description='Jubatus Testing Framework Utility')
 
             parser.add_argument('--config',          type=str, required=True,  help='environment configuration file')
             parser.add_argument('--list-nodes',      action='store_true',      help='list nodes')
