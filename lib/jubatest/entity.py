@@ -481,7 +481,7 @@ class JubaRPCServer(object):
         """
         return self._backend and self._backend.is_running()
 
-    def get_client(self, cluster_name=None):
+    def get_client(self, cluster_name=None, timeout_sec=CLIENT_TIMEOUT):
         """
         Returns the client instance for this RPC server.
         """
@@ -490,7 +490,7 @@ class JubaRPCServer(object):
         cli = None
         try:
             cli_class = self._get_class('.'.join(['jubatus', self.service, 'client', self.service.capitalize()]))
-            cli = cli_class(self.node.get_host(), self.port, cluster_name, self.CLIENT_TIMEOUT)
+            cli = cli_class(self.node.get_host(), self.port, cluster_name, timeout_sec)
         except BaseException as e:
             raise JubaTestFixtureFailedError('failed to create client class for %s (%s)' % (self.service, e.message))
         return cli
