@@ -30,6 +30,10 @@ class LocalSubprocess(object):
         """
         Process should be stopped before destruction.
         """
+        if not hasattr(self, '_process'):
+          # except for constructor failures
+          return
+
         p = self._process
         if p is not None and p.poll() is None:
             log.warning('local process is still running! KILLing... %s', self.args)
