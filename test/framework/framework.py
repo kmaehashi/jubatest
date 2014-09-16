@@ -7,6 +7,7 @@ import msgpackrpc
 
 from jubatest import *
 from jubatest.log import LogLevel
+from jubatest.exceptions import JubaTestAssertionError
 
 class FrameworkTest(JubaTestCase):
     @classmethod
@@ -60,6 +61,10 @@ class FrameworkTest(JubaTestCase):
         # test server and keeper
         server1 = self.env.server(node0, cluster)
         keeper1 = self.env.keeper(node0, CLASSIFIER)
+
+        # calling get_client for servers not started yet should fail
+        self.assertRaises(JubaTestAssertionError, server1.get_client)
+        self.assertRaises(JubaTestAssertionError, keeper1.get_client)
 
         # start server and keeper
         keeper1.start()

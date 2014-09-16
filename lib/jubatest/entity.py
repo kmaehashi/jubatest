@@ -408,7 +408,7 @@ class JubaRPCServer(object):
         self.node = node
         self.service = service
         self.options = options
-        self.port = -1
+        self.port = None
         self._backend = None
         self._log_filter = None
 
@@ -463,6 +463,7 @@ class JubaRPCServer(object):
         log.debug('stopping remote process')
         self._backend.stop(signal)
         self.node.free_port(self.port)
+        self.port = None
 
     def kill(self):
         """
@@ -474,6 +475,7 @@ class JubaRPCServer(object):
         log.debug('stopping remote process with SIGKILL')
         self._backend.stop('KILL')
         self.node.free_port(self.port)
+        self.port = None
 
     def is_running(self):
         """
@@ -487,6 +489,10 @@ class JubaRPCServer(object):
         """
         if not cluster_name:
             cluster_name = self.cluster_name()
+
+        if not self.port:
+            raise JubaTestAssertionError('port for this RPC server is not available (maybe not started yet?)')
+
         cli = None
         try:
             cli_class = self._get_class('.'.join(['jubatus', self.service, 'client', self.service.capitalize()]))
