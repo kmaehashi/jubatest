@@ -12,6 +12,14 @@ class SyncRemoteProcessTest(JubaTestCase):
         result = SyncRemoteProcess.run('localhost', ['/bin/echo', '-n', 'foo'])
         self.assertEqual('foo', result)
 
+    def test_run_envvar(self):
+        result = SyncRemoteProcess.run('localhost', ['/bin/echo', '-n', '${PARAM}'], {'PARAM': 'bar'})
+        self.assertEquals('bar', result)
+
+    def test_run_timeout(self):
+        result = SyncRemoteProcess.run('localhost', ['/bin/echo', '-n', 'baz'], {}, 5)
+        self.assertEquals('baz', result)
+
     def test_run_fail(self):
         self.assertRaises(RemoteProcessFailedError, SyncRemoteProcess.run, 'localhost', ['/'])
 

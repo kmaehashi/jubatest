@@ -29,7 +29,7 @@ class SyncRemoteProcess(object):
         process.start()
         if timeout:
             for i in range(int(timeout)):
-                if not process.ir_running(): break
+                if not process.is_running(): break
                 time.sleep(1)
             else:
                 process.stop()
