@@ -67,9 +67,6 @@ class LogTest(JubaTestCase):
         self.assertEqual('jubatus', entries[1].type)
         self.assertEqual('jubatus', entries[2].type)
 
-    def test_parse_logs_fail(self):
-        self.assertRaises(JubaTestAssertionError, Log.parse_logs, 'localhost', 'foobar')
-
 class LogLevelTest(JubaTestCase):
     def test_levels(self):
         self.assertEqual(LogLevel.INFO, LogLevel.normalize('INFO'))

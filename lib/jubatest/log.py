@@ -68,7 +68,10 @@ class Log:
             line = lines.pop(0)
             while lines and not ((Log.log_juba.match(lines[0]) or Log.log_zk.match(lines[0]))):
                 line += '\n' + lines.pop(0)
-            entries += [Log(node, line)]
+            try:
+                entries.append(Log(node, line))
+            except JubaTestAssertionError as e:
+                log.warning('failed to parse log line: %s', line)
         return entries
 
 class LogLevel:
