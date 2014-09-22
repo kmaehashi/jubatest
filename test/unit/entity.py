@@ -128,7 +128,6 @@ class JubaNodeTest(JubaTestCase):
         time.sleep(1)
         proc.stop()
         self.assertEqual('', proc.stdout)
-        self.assertEqual('', proc.stderr)
 
     def test_run_process(self):
         n = JubaNode('localhost', range(10000,10003), None, '/tmp', [])
