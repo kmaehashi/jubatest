@@ -145,8 +145,8 @@ class JubaRPCServerTest(JubaTestCase):
     def test_start_fail(self):
         self.assertRaises(JubaTestFixtureFailedError, self.stub_instance.start)
 
-    def test_get_client(self):
-        self.assertIsInstance(self.instance.get_client('foo'), jubatus.classifier.client.Classifier)
+    def test_get_client_fail(self):
+        self.assertRaises(JubaTestAssertionError, self.instance.get_client, 'foo')
 
     def test_get_client_type(self):
         self.assertIsInstance(self.instance.get_client_type('Datum')(), jubatus.common.Datum)
@@ -157,7 +157,7 @@ class JubaRPCServerTest(JubaTestCase):
     def test_get_host_port(self):
         (host, port) = self.instance.get_host_port()
         self.assertEqual('127.0.0.1', host)
-        self.assertEqual(-1, port) # port will not be allocated before calling start
+        self.assertEqual(None, port) # port will not be allocated before calling start
 
     def test_log_fail(self):
         self.assertRaises(JubaTestAssertionError, self.instance.log)
