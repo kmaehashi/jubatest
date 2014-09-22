@@ -20,6 +20,10 @@ class SyncRemoteProcessTest(JubaTestCase):
         result = SyncRemoteProcess.run('localhost', ['/bin/echo', '-n', 'baz'], {}, 5)
         self.assertEquals('baz', result)
 
+    def test_run_timeout_fail(self):
+        result = SyncRemoteProcess.run('localhost', ['sleep', '5'], {}, 3)
+        self.assertEquals('baz', result)
+
     def test_run_fail(self):
         self.assertRaises(RemoteProcessFailedError, SyncRemoteProcess.run, 'localhost', ['/'])
 
