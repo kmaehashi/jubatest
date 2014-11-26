@@ -8,6 +8,8 @@ Requirements
 
 * Jubatus 0.6.x
 
+  * Jubatus 0.6.4+ for Burst Detection engine
+
 * Python 2.7.3 + Jubatus Python Client 0.5.x
 
 * RHEL 6.x or Ubuntu 12.04 (64-bit)

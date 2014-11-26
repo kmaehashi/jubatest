@@ -21,6 +21,7 @@ DEFAULT_CONFIG = {
   ANOMALY: 'lof',
   NEAREST_NEIGHBOR: 'lsh',
   CLUSTERING: 'kmeans',
+  BURST: 'burst',
 }
 
 def sleep(sec):
