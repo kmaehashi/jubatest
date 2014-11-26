@@ -134,7 +134,8 @@ class JubaTestEnvironment(object):
             for rpc_server in self._rpc_servers:
                 if rpc_server.is_used():
                     kind = rpc_server.__class__.__name__
-                    (host, port) = rpc_server.get_host_port()
+                    host = rpc_server.node.get_host()
+                    port = rpc_server._last_port
                     log_raw = '\n'.join(rpc_server.log_raw())
                     attach_logs.append((kind, host, port, log_raw))
             testCase.logs = attach_logs
@@ -409,6 +410,7 @@ class JubaRPCServer(object):
         self.service = service
         self.options = options
         self.port = None
+        self._last_port = None
         self._backend = None
         self._log_filter = None
 
@@ -431,6 +433,7 @@ class JubaRPCServer(object):
 
         self.reset()
         self.port = self.node.lease_port()
+        self._last_port = self.port
         options2 = self.options + [
             ('--rpc-port', self.port),
         ]
