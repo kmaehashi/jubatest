@@ -498,11 +498,16 @@ class JubaRPCServer(object):
 
         cli = None
         try:
-            cli_class = self._get_class('.'.join(['jubatus', self.service, 'client', self.service.capitalize()]))
+            cli_class = self.get_client_class()
             cli = cli_class(self.node.get_host(), self.port, cluster_name, timeout_sec)
         except BaseException as e:
             raise JubaTestFixtureFailedError('failed to create client class for %s (%s)' % (self.service, e.message))
         return cli
+
+    def get_client_class(self):
+        service_name = self.service
+        client_class = ''.join(map(str.capitalize, service_name.split('_')))
+        return self._get_class('.'.join(['jubatus', service_name, 'client', client_class]))
 
     def get_client_type(self, typename):
         """

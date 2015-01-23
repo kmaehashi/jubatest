@@ -138,15 +138,22 @@ class JubaNodeTest(JubaTestCase):
 
 class JubaRPCServerTest(JubaTestCase):
     def setUp(self):
-        node = JubaNode('127.0.0.1', [12345], None, '/tmp', [])
-        self.instance = JubaRPCServer(node, CLASSIFIER, [])
-        self.stub_instance = JubaRPCServerStub(node)
+        self.node = JubaNode('127.0.0.1', [12345], None, '/tmp', [])
+        self.instance = JubaRPCServer(self.node, CLASSIFIER, [])
+        self.stub_instance = JubaRPCServerStub(self.node)
 
     def test_start_fail(self):
         self.assertRaises(JubaTestFixtureFailedError, self.stub_instance.start)
 
     def test_get_client_fail(self):
         self.assertRaises(JubaTestAssertionError, self.instance.get_client, 'foo')
+
+    def test_get_client_class(self):
+        server = JubaRPCServer(self.node, CLASSIFIER, [])
+        self.assertEqual(server.get_client_class(), jubatus.classifier.client.Classifier)
+
+        server = JubaRPCServer(self.node, NEAREST_NEIGHBOR, [])
+        self.assertEqual(server.get_client_class(), jubatus.nearest_neighbor.client.NearestNeighbor)
 
     def test_get_client_type(self):
         self.assertIsInstance(self.instance.get_client_type('Datum')(), jubatus.common.Datum)
