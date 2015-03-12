@@ -46,7 +46,7 @@ class LocalSubprocess(object):
         if self._process:
             raise JubaTestFixtureFailedError('cannot start again using same instance')
         log.debug('starting process: %s', self.args)
-        self._process = Popen(self.args, env=self.env, stdin=PIPE, stdout=PIPE, stderr=PIPE, preexec_fn=os.setpgrp)
+        self._process = Popen(self.args, env=self.env, stdin=PIPE, stdout=PIPE, stderr=PIPE, preexec_fn=os.setpgrp, close_fds=True)
         log.debug('started process: %s', self.args)
 
     def wait(self, stdin=None):
