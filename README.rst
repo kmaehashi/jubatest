@@ -9,6 +9,7 @@ Requirements
 * Jubatus 0.6.x
 
   * Jubatus 0.6.4+ for Burst Detection engine
+  * Jubatus 0.7.0+ for Bandit engine
 
 * Python 2.7.3 + Jubatus Python Client 0.5.x
 
