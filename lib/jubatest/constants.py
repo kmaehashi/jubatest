@@ -22,6 +22,7 @@ DEFAULT_CONFIG = {
   NEAREST_NEIGHBOR: 'lsh',
   CLUSTERING: 'kmeans',
   BURST: 'burst',
+  BANDIT: 'epsilon_greedy',
 }
 
 def sleep(sec):
