@@ -6,10 +6,11 @@ Jubatus Testing Framework (JTF) provides a framework to write tests against Juba
 Requirements
 ---------------
 
-* Jubatus 0.6.x
+* Jubatus 0.6+
 
   * Jubatus 0.6.4+ for Burst Detection engine
   * Jubatus 0.7.0+ for Bandit engine
+  * Jubatus 0.8.3+ for Clustering engine (new 'seed' parameter)
 
 * Python 2.7.3 + Jubatus Python Client 0.5.x
 
