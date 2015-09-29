@@ -35,10 +35,10 @@ def gen_config(configs):
 
 def main(top_dir):
   configs = {}
-  engines = listdir(top_dir)
+  engines = sorted(listdir(top_dir))
   for engine in engines:
     configs[engine] = []
-    for config in listdir(path.join(top_dir, engine)):
+    for config in sorted(listdir(path.join(top_dir, engine))):
       (algorithm, _) = path.splitext(config)
       with open(path.join(top_dir, engine, config)) as f:
         configs[engine].append((algorithm, json.load(f)))
