@@ -130,17 +130,16 @@ class JubaTestEnvironment(object):
             if ports_used != 0:
                 log.warning('%d leaked port(s) detected on node %d (%s)', ports_used, number, node.get_host())
 
-        # attach logs for failed tests
-        if testCase.attachLogs:
-            attach_logs = []
-            for rpc_server in self._rpc_servers:
-                if rpc_server.is_used():
-                    kind = rpc_server.__class__.__name__
-                    host = rpc_server.node.get_host()
-                    port = rpc_server._last_port
-                    log_raw = '\n'.join(rpc_server.log_raw())
-                    attach_logs.append((kind, host, port, log_raw))
-            testCase.logs = attach_logs
+        # attach logs of RPC servers
+        attach_logs = []
+        for rpc_server in self._rpc_servers:
+            if rpc_server.is_used():
+                kind = rpc_server.__class__.__name__
+                host = rpc_server.node.get_host()
+                port = rpc_server._last_port
+                log_raw = '\n'.join(rpc_server.log_raw())
+                attach_logs.append((kind, host, port, log_raw))
+        testCase.logs = attach_logs
 
         # reset internal state of RPC server instances for reuse
         for rpc_server in self._rpc_servers:

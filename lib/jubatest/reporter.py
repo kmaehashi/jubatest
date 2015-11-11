@@ -42,7 +42,7 @@ class JubaTestTextReporter(JubaTestReporter):
             for (test, err) in elem[1]:
                 if elem[0] != 'Skipped':
                     logs = '(no logs available)\n'
-                    if hasattr(test, 'logs'):
+                    if test.attachLogs:
                         logs = self.prettify_logs(test.logs) + '\n'
                 else:
                     logs = ''
@@ -91,7 +91,7 @@ class JubaTestXunitReporter(JubaTestReporter):
                     stdout = doc.createElement('system-out')
                     node.appendChild(stdout)
                     stdout.appendChild(doc.createTextNode(_setMeasurementForPlot(doc, record)))
-            if hasattr(test, 'logs'):
+            if test.attachLogs:
                 logs = self.prettify_logs(test.logs)
                 stderr = doc.createElement('system-err')
                 node.appendChild(stderr)
