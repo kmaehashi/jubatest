@@ -39,7 +39,7 @@ class FrameworkTest(JubaTestCase):
             self.assertEqual(1, cli.train([('label', d)]))
 
             # save
-            self.assertEqual(True, cli.save('baz'))
+            self.assertEqual(1, len(cli.save('baz')))
 
             # get model file
             model_data = server1.get_saved_model('baz')
