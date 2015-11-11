@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import time
 import tempfile
 
@@ -10,15 +12,15 @@ from jubatest.remote import SyncRemoteProcess, AsyncRemoteProcess, RemoteProcess
 class SyncRemoteProcessTest(JubaTestCase):
     def test_run(self):
         result = SyncRemoteProcess.run('localhost', ['/bin/echo', '-n', 'foo'])
-        self.assertEqual('foo', result)
+        self.assertEqual(b'foo', result)
 
     def test_run_envvar(self):
         result = SyncRemoteProcess.run('localhost', ['/bin/echo', '-n', '${PARAM}'], {'PARAM': 'bar'})
-        self.assertEquals('bar', result)
+        self.assertEquals(b'bar', result)
 
     def test_run_timeout(self):
         result = SyncRemoteProcess.run('localhost', ['/bin/echo', '-n', 'baz'], {}, 5)
-        self.assertEquals('baz', result)
+        self.assertEquals(b'baz', result)
 
     def test_run_timeout_fail(self):
         fail_args = ['localhost', ['sleep', '5'], {}, 3]
@@ -30,7 +32,7 @@ class SyncRemoteProcessTest(JubaTestCase):
     def test_get_file(self):
         with tempfile.NamedTemporaryFile() as tmp:
             SyncRemoteProcess.get_file('localhost', '/etc/hosts', tmp.name)
-            with open('/etc/hosts', 'r') as expected_file:
+            with open('/etc/hosts', 'rb') as expected_file:
                 self.assertEqual(expected_file.read(), tmp.read())
 
     def test_get_file_remote_fail(self):
@@ -41,10 +43,10 @@ class SyncRemoteProcessTest(JubaTestCase):
 
     def test_put_file(self):
         with tempfile.NamedTemporaryFile() as tmp1, tempfile.NamedTemporaryFile() as tmp2:
-            tmp1.write('foo')
+            tmp1.write(b'foo')
             tmp1.flush()
             SyncRemoteProcess.put_file('localhost', tmp1.name, tmp2.name)
-            self.assertEqual('foo', tmp2.read())
+            self.assertEqual(b'foo', tmp2.read())
 
     def test_put_file_local_fail(self):
         self.assertRaises(RemoteProcessFailedError, SyncRemoteProcess.put_file, 'localhost', '/no-such-file', '/tmp')
@@ -60,7 +62,7 @@ class AsyncRemoteProcessTest(JubaTestCase):
             time.sleep(0.1)
         p.stop()
         self.assertFalse(p.is_running())
-        self.assertEqual('foo', p.stdout)
+        self.assertEqual(b'foo', p.stdout)
 
     def test_destructor(self):
         p = AsyncRemoteProcess('localhost', ['sleep', '120'], [])

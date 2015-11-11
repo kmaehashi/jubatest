@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 from xml.dom.minidom import *
 
 from .unit import JubaTestCase
@@ -51,7 +53,7 @@ class JubaTestTextReporter(JubaTestReporter):
 class JubaTestXunitReporter(JubaTestReporter):
     def create_report(self, result):
         def _setAttributes(node, attrs):
-            map(lambda x: node.setAttribute(x[0], x[1]), attrs)
+            list(map(lambda x: node.setAttribute(x[0], x[1]), attrs))
 
         def _setMeasurementForPlot(doc, record):
             results = []

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import time
 
 from jubatest import *
@@ -15,7 +17,7 @@ class LocalSubprocessTest(JubaTestCase):
             if not p.is_running():
                 break
         p.wait()
-        self.assertEqual('foo', p.stdout)
+        self.assertEqual(b'foo', p.stdout)
         self.assertFalse(p.is_running())
 
     def test_stop(self):

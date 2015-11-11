@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import time
 import os
 
@@ -85,7 +87,7 @@ class AsyncRemoteProcess(LocalSubprocess):
         super(AsyncRemoteProcess, self).wait('\n')
 
     def stop(self, signal='TERM'):
-        super(AsyncRemoteProcess, self).wait(signal + '\n')
+        super(AsyncRemoteProcess, self).wait(signal.encode() + b'\n')
 
 class _RemoteUtil(object):
     @classmethod

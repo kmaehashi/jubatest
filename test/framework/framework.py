@@ -32,7 +32,7 @@ class FrameworkTest(JubaTestCase):
 
             # get server ID
             server1_id = server1.get_id()
-            self.assertIsNotNone(re.match('\d+\.\d+\.\d+\.\d+_\d+', server1_id), server1_id)
+            self.assertIsNotNone(re.match(r'\d+\.\d+\.\d+\.\d+_\d+', server1_id), server1_id)
 
             # query server
             d = server1.types.Datum({'foo': 'bar'})
