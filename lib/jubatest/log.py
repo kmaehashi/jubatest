@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 """
 Log parser for Jubatus servers/keepers
 """
@@ -15,8 +17,8 @@ class Log:
     Represents one log entry.
     """
 
-    log_juba = re.compile('^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2}),(\d{3})\s+(\d+)\s+([A-Z]+)\s+\[(.+?):(\d+)\] ')
-    log_zk   = re.compile('^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2}),(\d{3}):(\d+)\((0x[0-9a-f]+)\):ZOO_([A-Z]+)@(.+?)@(\d+): ')
+    log_juba = re.compile(r'^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2}),(\d{3})\s+(\d+)\s+([A-Z]+)\s+\[(.+?):(\d+)\] ')
+    log_zk   = re.compile(r'^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2}),(\d{3}):(\d+)\((0x[0-9a-f]+)\):ZOO_([A-Z]+)@(.+?)@(\d+): ')
 
     def __init__(self, node, line):
         """
@@ -117,25 +119,25 @@ class LogFilter:
         return self.logs.__iter__()
 
     def type(self, arg):
-        return LogFilter(filter(lambda l: l.type == arg, self.logs))
+        return LogFilter([l for l in self.logs if l.type == arg])
 
     def node(self, arg):
-        return LogFilter(filter(lambda l: l.node == arg, self.logs))
+        return LogFilter([l for l in self.logs if l.node == arg])
 
     def level(self, arg):
-        return LogFilter(filter(lambda l: l.level == arg, self.logs))
+        return LogFilter([l for l in self.logs if l.level == arg])
 
     def time_range(self, begin, end):
-        return LogFilter(filter(lambda l: begin <= l.time and l.time <= end, self.logs))
+        return LogFilter([l for l in self.logs if begin <= l.time and l.time <= end])
 
     def message(self, pattern):
-        return LogFilter(filter(lambda l: re.search(pattern, l.message), self.logs))
+        return LogFilter([l for l in self.logs if re.search(pattern, l.message)])
 
     def consume(self, log):
         return LogFilter(self.logs[self.logs.index(log)+1:])
 
     def get(self):
-        return self.logs
+        return list(self.logs)
 
     def __str__(self):
-        return '\n'.join(map(lambda x: str(x), self.logs))
+        return '\n'.join([str(x) for x in self.logs])
