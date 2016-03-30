@@ -86,6 +86,7 @@ class TestStub(object):
     def __init__(self, *args, **kwds):
         self.timeTaken = 1.2
         self._record = {}
+        self.attachLogs = False
 
     def id(self):
         return "test1.test2.MyTest"
