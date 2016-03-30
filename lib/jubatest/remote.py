@@ -128,7 +128,7 @@ class _RemoteUtil(object):
                        '[', '-z', '${_SIG}', ']', '||', 'pkill', '-${_SIG}', '-P$$', ';',
                        # wait for the subprocesses to complete.
                        'wait', ';'
-                 '}', '&>', '/dev/stderr',
+                 '}', '>&2',
                ]
 
     @classmethod
