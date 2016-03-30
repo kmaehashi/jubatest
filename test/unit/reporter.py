@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 from xml.dom.minidom import *
 import re
 
@@ -84,6 +86,7 @@ class TestStub(object):
     def __init__(self, *args, **kwds):
         self.timeTaken = 1.2
         self._record = {}
+        self.attachLogs = False
 
     def id(self):
         return "test1.test2.MyTest"

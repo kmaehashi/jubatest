@@ -32,14 +32,14 @@ class FrameworkTest(JubaTestCase):
 
             # get server ID
             server1_id = server1.get_id()
-            self.assertIsNotNone(re.match('\d+\.\d+\.\d+\.\d+_\d+', server1_id), server1_id)
+            self.assertIsNotNone(re.match(r'\d+\.\d+\.\d+\.\d+_\d+', server1_id), server1_id)
 
             # query server
             d = server1.types.Datum({'foo': 'bar'})
             self.assertEqual(1, cli.train([('label', d)]))
 
             # save
-            self.assertEqual(True, cli.save('baz'))
+            self.assertEqual(1, len(cli.save('baz')))
 
             # get model file
             model_data = server1.get_saved_model('baz')

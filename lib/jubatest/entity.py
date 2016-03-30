@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 """
 Abstraction interface of test environment and clusters/servers/proxies.
 """
@@ -74,9 +76,9 @@ class JubaTestEnvironment(object):
                 self.eval(f.read())
 
         def node(self, host, ports):
-            if type(ports) != list:
+            if type(ports) == int:
                 ports = [ports]
-            self._env._node_records += [(host,ports)]
+            self._env._node_records += [(host, ports)]
 
         def zookeeper(self, host, port):
             self._env._zookeepers += [(host, port)]
@@ -128,17 +130,16 @@ class JubaTestEnvironment(object):
             if ports_used != 0:
                 log.warning('%d leaked port(s) detected on node %d (%s)', ports_used, number, node.get_host())
 
-        # attach logs for failed tests
-        if testCase.attachLogs:
-            attach_logs = []
-            for rpc_server in self._rpc_servers:
-                if rpc_server.is_used():
-                    kind = rpc_server.__class__.__name__
-                    host = rpc_server.node.get_host()
-                    port = rpc_server._last_port
-                    log_raw = '\n'.join(rpc_server.log_raw())
-                    attach_logs.append((kind, host, port, log_raw))
-            testCase.logs = attach_logs
+        # attach logs of RPC servers
+        attach_logs = []
+        for rpc_server in self._rpc_servers:
+            if rpc_server.is_used():
+                kind = rpc_server.__class__.__name__
+                host = rpc_server.node.get_host()
+                port = rpc_server._last_port
+                log_raw = '\n'.join(rpc_server.log_raw())
+                attach_logs.append((kind, host, port, log_raw))
+        testCase.logs = attach_logs
 
         # reset internal state of RPC server instances for reuse
         for rpc_server in self._rpc_servers:
@@ -271,7 +272,7 @@ class JubaCluster(object):
         args = ['jubaconfig', '--debug', '--cmd', 'write', '--file', '/dev/stdin', '--type', self.service, '--name', self.name, '--zookeeper', self.zk]
         proc = LocalSubprocess(args)
         proc.start()
-        if proc.wait(json.dumps(self.config)) != 0:
+        if proc.wait(json.dumps(self.config).encode()) != 0:
             raise JubaTestFixtureFailedError('jubaconfig failed: %s\n%s' % (proc.stdout, proc.stderr))
 
     def _is_command_available(self, command):
@@ -296,12 +297,12 @@ class JubaNode(object):
 
     def __init__(self, host, ports, prefix, workdir, variables, remote_process_timeout=None):
         self._host = host
-        self._ports = ports
+        self._ports = list(ports)
         self._prefix = prefix
         self._workdir = workdir
         self._variables = variables
         self._remote_process_timeout = remote_process_timeout
-        self._free_ports = copy.copy(ports)
+        self._free_ports = copy.copy(self._ports)
 
     def get_host(self):
         return self._host
@@ -340,14 +341,15 @@ class JubaNode(object):
 
     def put_file(self, data, to_path=None):
         """
-        Put the contents to the given path
+        Put the contents to the given path.
+        `data` must be a byte.
         """
         if not to_path:
             log.debug('creating temporary file on host %s', self._host)
-            to_path = SyncRemoteProcess.run(self._host, ['mktemp', '--tmpdir=' + self._workdir, 'jubatest.tmp.XXXXXXXXXX']).rstrip()
+            to_path = SyncRemoteProcess.run(self._host, ['mktemp', '--tmpdir=' + self._workdir, 'jubatest.tmp.XXXXXXXXXX']).rstrip().decode()
             log.debug('created temporary file on host %s: %s', self._host, to_path)
         with tempfile.NamedTemporaryFile() as tmp_file:
-            tmp_file.write(str(data))
+            tmp_file.write(data)
             tmp_file.flush()
             log.debug('sending file %s to host %s: %s', tmp_file.name, self._host, to_path)
             SyncRemoteProcess.put_file(self._host, tmp_file.name, to_path)
@@ -506,7 +508,7 @@ class JubaRPCServer(object):
 
     def get_client_class(self):
         service_name = self.service
-        client_class = ''.join(map(str.capitalize, service_name.split('_')))
+        client_class = ''.join(map(lambda x: x.capitalize(), service_name.split('_')))
         return self._get_class('.'.join(['jubatus', service_name, 'client', client_class]))
 
     def get_client_type(self, typename):
@@ -528,8 +530,9 @@ class JubaRPCServer(object):
                 c = self._get_class('.'.join(['jubatus', 'common', 'Datum']))
             else:
                 c = self._get_class('.'.join(['jubatus', self.service, 'types', typename]))
-        except BaseException as e:
-            raise JubaTestFixtureFailedError('failed to create client type %s (%s)' % (typename, e.message))
+        except Exception as e:
+            #raise JubaTestFixtureFailedError('failed to create client type {0} ({1}: {2})'.format(typename, type(e).__name__, e.message))
+            raise
         return c
 
     @property
@@ -568,7 +571,7 @@ class JubaRPCServer(object):
         Returns raw log; tuple of (Jubatus, ZooKeeper) logs.
         """
         if self._backend and self._backend.stdout is not None and self._backend.stderr is not None:
-            return (self._backend.stdout, self._backend.stderr)
+            return (self._backend.stdout.decode(), self._backend.stderr.decode())
         raise JubaTestAssertionError('no log data collected (maybe the server is not stopped yet?)')
 
     def _get_log_filter(self):
@@ -613,7 +616,7 @@ class JubaRPCServer(object):
         """
         levels = name.split('.')
         (package, module, basename) = (levels[0], '.'.join(levels[:-1]), levels[-1])
-        return getattr(__import__(module, fromlist=[package]), basename)
+        return getattr(__import__(module, fromlist=[str(package)]), basename)
 
     def _flatten_options(self, options):
         """
@@ -681,7 +684,7 @@ class JubaServer(JubaRPCServer):
 
         log.debug('sending request: server ID')
         cli = msgpackrpc.Client(msgpackrpc.Address(self.node.get_host(), self.port))
-        server_id = cli.call('get_status', '').popitem()[0]
+        server_id = cli.call('get_status', '').popitem()[0].decode()
         cli.close()
         log.debug('got reply: server ID = %s', server_id)
         self._server_id_cache = server_id
@@ -709,7 +712,7 @@ class JubaStandaloneServer(JubaServer):
     def __init__(self, node, service, config, options):
         log.debug('transfering temporary configuration file for a standalone server')
         self._config = config
-        self._config_path = node.put_file(json.dumps(config))
+        self._config_path = node.put_file(json.dumps(config).encode())
         log.debug('transferred temporary configuration file for a standalone server: %s', self._config_path)
         options2 = options + [
             ('--configpath', self._config_path),
@@ -744,7 +747,7 @@ class JubaProxy(JubaRPCServer):
         log.debug('requesting Jubatus cluster members for cluster %s', cluster.name)
         cli = msgpackrpc.Client(msgpackrpc.Address(self.node.get_host(), self.port))
         try:
-            members = cli.call('get_status', cluster.name).keys()
+            members = list(map(lambda x: x.decode(), cli.call('get_status', cluster.name).keys()))
         except msgpackrpc.error.RPCError as e:
             if e.args[0] != 'no server found: ' + cluster.name:
                 raise

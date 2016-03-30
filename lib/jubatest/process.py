@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 """
 Provides local process management interface.
 """
@@ -59,9 +61,9 @@ class LocalSubprocess(object):
 
         log.debug('waiting for process to complete: %s', self.args)
         (self.stdout, self.stderr) = self._process.communicate(stdin)
-        log.debug('process completed: %s', self.args)
         returncode = self._process.returncode
         self._process = None
+        log.debug('process completed: %s with status %d', self.args, returncode)
         return returncode
 
     def stop(self, kill=False):

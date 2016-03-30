@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import jubatus
 import os
 import tempfile
@@ -94,30 +96,30 @@ class JubaNodeTest(JubaTestCase):
     def test_put_file(self):
         n = JubaNode('localhost', range(10000,10003), None, '/tmp', [])
         with tempfile.NamedTemporaryFile() as tmp:
-            n.put_file('foo', tmp.name)
-            self.assertEqual('foo', tmp.read())
+            n.put_file(b'foo', tmp.name)
+            self.assertEqual(b'foo', tmp.read())
 
     def test_put_file_delete_file(self):
         n = JubaNode('localhost', range(10000,10003), None, '/tmp', [])
-        path = n.put_file('foo')
+        path = n.put_file(b'foo')
         self.assertTrue(os.path.isfile(path))
-        with open(path, 'r') as f:
-            self.assertEqual('foo', f.read())
+        with open(path, 'rb') as f:
+            self.assertEqual(b'foo', f.read())
         n.delete_file(path)
         self.assertFalse(os.path.isfile(path))
 
     def test_get_file(self):
         n = JubaNode('localhost', range(10000,10003), None, '/tmp', [])
         with tempfile.NamedTemporaryFile() as tmp1, tempfile.NamedTemporaryFile() as tmp2:
-            tmp1.write('bar')
+            tmp1.write(b'bar')
             tmp1.flush()
             n.get_file(tmp1.name, tmp2.name)
-            self.assertEqual('bar', tmp2.read())
+            self.assertEqual(b'bar', tmp2.read())
 
     def test_get_file_temp(self):
         n = JubaNode('localhost', range(10000,10003), None, '/tmp', [])
         contents_remote = n.get_file('/etc/hosts')
-        with open('/etc/hosts', 'r') as f:
+        with open('/etc/hosts', 'rb') as f:
             contents_local= f.read()
         self.assertEqual(contents_local, contents_remote)
 
@@ -127,12 +129,12 @@ class JubaNodeTest(JubaTestCase):
         proc.start()
         time.sleep(1)
         proc.stop()
-        self.assertEqual('', proc.stdout)
+        self.assertEqual(b'', proc.stdout)
 
     def test_run_process(self):
         n = JubaNode('localhost', range(10000,10003), None, '/tmp', [])
         contents_remote = n.run_process(['cat', '/etc/hosts'])
-        with open('/etc/hosts', 'r') as f:
+        with open('/etc/hosts', 'rb') as f:
             contents_local= f.read()
         self.assertEqual(contents_local, contents_remote)
 

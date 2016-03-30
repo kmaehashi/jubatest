@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 from xml.dom.minidom import *
 
 from .unit import JubaTestCase
@@ -40,7 +42,7 @@ class JubaTestTextReporter(JubaTestReporter):
             for (test, err) in elem[1]:
                 if elem[0] != 'Skipped':
                     logs = '(no logs available)\n'
-                    if hasattr(test, 'logs'):
+                    if test.attachLogs:
                         logs = self.prettify_logs(test.logs) + '\n'
                 else:
                     logs = ''
@@ -51,7 +53,7 @@ class JubaTestTextReporter(JubaTestReporter):
 class JubaTestXunitReporter(JubaTestReporter):
     def create_report(self, result):
         def _setAttributes(node, attrs):
-            map(lambda x: node.setAttribute(x[0], x[1]), attrs)
+            list(map(lambda x: node.setAttribute(x[0], x[1]), attrs))
 
         def _setMeasurementForPlot(doc, record):
             results = []
@@ -89,7 +91,7 @@ class JubaTestXunitReporter(JubaTestReporter):
                     stdout = doc.createElement('system-out')
                     node.appendChild(stdout)
                     stdout.appendChild(doc.createTextNode(_setMeasurementForPlot(doc, record)))
-            if hasattr(test, 'logs'):
+            if test.attachLogs:
                 logs = self.prettify_logs(test.logs)
                 stderr = doc.createElement('system-err')
                 node.appendChild(stderr)
