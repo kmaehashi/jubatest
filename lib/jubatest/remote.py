@@ -38,7 +38,7 @@ class SyncRemoteProcess(object):
                 raise RemoteProcessFailedError('remote process timed out: {}'.format(str(args)))
         returncode = process.wait()
         if returncode != 0:
-            raise RemoteProcessFailedError('remote process failed with status {}: {} ({})'.format(returncode, str(args), process.stderr))
+            raise RemoteProcessFailedError('remote process failed with status {0}: {1} (out: {2}, err: {3})'.format(returncode, args, process.stdout, process.stderr))
         return process.stdout
 
     @classmethod
