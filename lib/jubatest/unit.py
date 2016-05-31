@@ -20,6 +20,7 @@ class JubaTestCase(unittest.TestCase):
     def __init__(self, *args, **kwds):
         self._record = None
         self.attachLogs = False
+        self.logs = []
         super(JubaTestCase, self).__init__(*args, **kwds)
 
     def assertRunsWithin(self, timeout, func, *args, **kwds):
@@ -96,15 +97,15 @@ class _JubaTestResult(unittest.TestResult):
         super(_JubaTestResult, self).addSuccess(test)
 
     def addError(self, test, err):
-        test.attachLogs = True
+        test.attachLogs = hasattr(test, 'logs')
         super(_JubaTestResult, self).addError(test, err)
 
     def addFailure(self, test, err):
-        test.attachLogs = True
+        test.attachLogs = hasattr(test, 'logs')
         super(_JubaTestResult, self).addFailure(test, err)
 
     def addUnexpectedSuccess(self, test):
-        test.attachLogs = True
+        test.attachLogs = hasattr(test, 'logs')
         super(_JubaTestResult, self).addUnexpectedSuccess(test, err)
 
     def stop(self):
