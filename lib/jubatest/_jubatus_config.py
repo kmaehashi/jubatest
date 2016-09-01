@@ -25,48 +25,130 @@ CONFIGS = {
       {'window_size': 128}
     ,
   },
-  WEIGHT: {
+  CLASSIFIER: {
+    'arow':
+      {'parameter': {'regularization_weight': 1.0}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'AROW'}
+    ,
+    'arow_combinational_feature':
+      {'parameter': {'regularization_weight': 1.0}, 'converter': {'combination_rules': [{'type': 'mul', 'key_left': '*', 'key_right': '*'}], 'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'combination_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'AROW'}
+    ,
+    'cosine':
+      {'parameter': {'nearest_neighbor_num': 16, 'local_sensitivity': 0.1}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'cosine'}
+    ,
+    'cw':
+      {'parameter': {'regularization_weight': 1.0}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'CW'}
+    ,
     'default':
-      {'converter': {'string_types': {'bigram': {'method': 'ngram', 'char_num': '2'}, 'trigram': {'method': 'ngram', 'char_num': '3'}, 'unigram': {'method': 'ngram', 'char_num': '1'}}, 'num_filter_types': {'linear': {'method': 'linear_normalization', 'min': '0', 'max': '100'}, 'sigmoid': {'method': 'sigmoid_normalization', 'gain': '0.05', 'bias': '5'}, 'gaussian': {'method': 'gaussian_normalization', 'standard_deviation': '2.3', 'average': '80'}}, 'binary_rules': [], 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'binary_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'tf', 'global_weight': 'idf', 'type': 'unigram', 'key': '*'}]}}
+      {'parameter': {'regularization_weight': 1.0}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'tf', 'key': '*', 'global_weight': 'idf', 'type': 'bigram'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {'unigram': {'method': 'ngram', 'char_num': '1'}, 'bigram': {'method': 'ngram', 'char_num': '2'}, 'trigram': {'method': 'ngram', 'char_num': '3'}}}, 'method': 'AROW'}
     ,
-  },
-  NEAREST_NEIGHBOR: {
-    'default':
-      {'method': 'lsh', 'parameter': {'hash_num': 64}, 'converter': {'string_types': {'bigram': {'method': 'ngram', 'char_num': '2'}, 'trigram': {'method': 'ngram', 'char_num': '3'}, 'unigram': {'method': 'ngram', 'char_num': '1'}}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'tf', 'global_weight': 'idf', 'type': 'bigram', 'key': '*'}]}}
+    'euclidean':
+      {'parameter': {'nearest_neighbor_num': 16, 'local_sensitivity': 0.1}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'euclidean'}
     ,
-    'euclid_lsh':
-      {'method': 'euclid_lsh', 'parameter': {'hash_num': 64}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
+    'nherd':
+      {'parameter': {'regularization_weight': 1.0}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'NHERD'}
     ,
-    'lsh':
-      {'method': 'lsh', 'parameter': {'hash_num': 64}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'lsh_combinational_feature':
-      {'method': 'lsh', 'parameter': {'hash_num': 64}, 'converter': {'string_types': {}, 'combination_rules': [{'key_left': '*', 'type': 'mul', 'key_right': '*'}], 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}], 'combination_types': {}}}
-    ,
-    'lsh_multithread':
-      {'method': 'lsh', 'parameter': {'threads': 2, 'hash_num': 64}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'minhash':
-      {'method': 'minhash', 'parameter': {'hash_num': 64}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-  },
-  REGRESSION: {
-    'default':
-      {'method': 'PA', 'parameter': {'sensitivity': 0.1, 'regularization_weight': 3.402823e+38}, 'converter': {'string_types': {'bigram': {'method': 'ngram', 'char_num': '2'}, 'trigram': {'method': 'ngram', 'char_num': '3'}, 'unigram': {'method': 'ngram', 'char_num': '1'}}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'tf', 'global_weight': 'idf', 'type': 'bigram', 'key': '*'}]}}
+    'nn':
+      {'method': 'NN', 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'parameter': {'method': 'euclid_lsh', 'local_sensitivity': 1, 'nearest_neighbor_num': 128, 'parameter': {'hash_num': 64}}}
     ,
     'pa':
-      {'method': 'PA', 'parameter': {'sensitivity': 0.1, 'regularization_weight': 3.402823e+38}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
+      {'method': 'PA', 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}}
     ,
-    'pa_combinational_feature':
-      {'method': 'PA', 'parameter': {'sensitivity': 0.1, 'regularization_weight': 3.402823e+38}, 'converter': {'string_types': {}, 'combination_rules': [{'key_left': '*', 'type': 'mul', 'key_right': '*'}], 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}], 'combination_types': {}}}
+    'pa1':
+      {'parameter': {'regularization_weight': 1.0}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'PA1'}
+    ,
+    'pa2':
+      {'parameter': {'regularization_weight': 1.0}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'PA2'}
+    ,
+    'perceptron':
+      {'method': 'perceptron', 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}}
     ,
   },
   GRAPH: {
     'default':
-      {'method': 'graph_wo_index', 'parameter': {'damping_factor': 0.9, 'landmark_num': 5}}
+      {'parameter': {'damping_factor': 0.9, 'landmark_num': 5}, 'method': 'graph_wo_index'}
     ,
     'graph_wo_index':
-      {'method': 'graph_wo_index', 'parameter': {'damping_factor': 0.9, 'landmark_num': 5}}
+      {'parameter': {'damping_factor': 0.9, 'landmark_num': 5}, 'method': 'graph_wo_index'}
+    ,
+  },
+  RECOMMENDER: {
+    'default':
+      {'method': 'inverted_index', 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'tf', 'key': '*', 'global_weight': 'idf', 'type': 'bigram'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {'unigram': {'method': 'ngram', 'char_num': '1'}, 'bigram': {'method': 'ngram', 'char_num': '2'}, 'trigram': {'method': 'ngram', 'char_num': '3'}}}}
+    ,
+    'euclid_lsh':
+      {'parameter': {'hash_num': 64, 'seed': 1091, 'bin_width': 100, 'table_num': 4, 'probe_num': 64}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'euclid_lsh'}
+    ,
+    'euclid_lsh_unlearn_lru':
+      {'parameter': {'hash_num': 64, 'seed': 1091, 'bin_width': 100, 'probe_num': 64, 'unlearner': 'lru', 'unlearner_parameter': {'max_size': 2048}, 'table_num': 4}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'euclid_lsh'}
+    ,
+    'inverted_index':
+      {'method': 'inverted_index', 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}}
+    ,
+    'inverted_index_euclid':
+      {'method': 'inverted_index_euclid', 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}}
+    ,
+    'inverted_index_euclid_unlearn_lru':
+      {'parameter': {'unlearner': 'lru', 'unlearner_parameter': {'max_size': 2048}}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'inverted_index_euclid'}
+    ,
+    'inverted_index_unlearn_lru':
+      {'parameter': {'unlearner': 'lru', 'unlearner_parameter': {'max_size': 2048}}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'inverted_index'}
+    ,
+    'lsh':
+      {'parameter': {'hash_num': 64}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'lsh'}
+    ,
+    'lsh_combinational_feature':
+      {'parameter': {'hash_num': 64}, 'converter': {'combination_rules': [{'type': 'mul', 'key_left': '*', 'key_right': '*'}], 'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'combination_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'lsh'}
+    ,
+    'lsh_unlearn_lru':
+      {'parameter': {'hash_num': 64, 'unlearner_parameter': {'max_size': 2048}, 'unlearner': 'lru'}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'lsh'}
+    ,
+    'minhash':
+      {'parameter': {'hash_num': 64}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'minhash'}
+    ,
+    'minhash_unlearn_lru':
+      {'parameter': {'hash_num': 64, 'unlearner_parameter': {'max_size': 2048}, 'unlearner': 'lru'}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'minhash'}
+    ,
+    'nearest_neighbor_recommender_euclid_lsh':
+      {'parameter': {'method': 'euclid_lsh', 'parameter': {'hash_num': 512}}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'nearest_neighbor_recommender'}
+    ,
+    'nearest_neighbor_recommender_euclid_lsh_unlearn_lru':
+      {'parameter': {'method': 'euclid_lsh', 'unlearner_parameter': {'max_size': 2048}, 'unlearner': 'lru', 'parameter': {'hash_num': 512}}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'nearest_neighbor_recommender'}
+    ,
+  },
+  BURST: {
+    'burst':
+      {'parameter': {'max_reuse_batch_num': 5, 'window_batch_size': 5, 'costcut_threshold': -1, 'batch_interval': 10, 'result_window_rotate_size': 5}, 'method': 'burst'}
+    ,
+    'default':
+      {'parameter': {'max_reuse_batch_num': 5, 'window_batch_size': 5, 'costcut_threshold': -1, 'batch_interval': 10, 'result_window_rotate_size': 5}, 'method': 'burst'}
+    ,
+  },
+  ANOMALY: {
+    'default':
+      {'parameter': {'parameter': {}, 'method': 'inverted_index_euclid', 'nearest_neighbor_num': 10, 'reverse_nearest_neighbor_num': 30, 'ignore_kth_same_point': True}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'tf', 'key': '*', 'global_weight': 'idf', 'type': 'bigram'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {'unigram': {'method': 'ngram', 'char_num': '1'}, 'bigram': {'method': 'ngram', 'char_num': '2'}, 'trigram': {'method': 'ngram', 'char_num': '3'}}}, 'method': 'lof'}
+    ,
+    'light_lof':
+      {'parameter': {'method': 'euclid_lsh', 'nearest_neighbor_num': 10, 'reverse_nearest_neighbor_num': 30, 'parameter': {'hash_num': 64}}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'light_lof'}
+    ,
+    'light_lof_combinational_feature':
+      {'parameter': {'method': 'euclid_lsh', 'nearest_neighbor_num': 10, 'reverse_nearest_neighbor_num': 30, 'parameter': {'hash_num': 64}}, 'converter': {'combination_rules': [{'type': 'mul', 'key_left': '*', 'key_right': '*'}], 'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'combination_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'light_lof'}
+    ,
+    'light_lof_unlearn_lru':
+      {'parameter': {'parameter': {'hash_num': 64}, 'nearest_neighbor_num': 10, 'unlearner': 'lru', 'method': 'euclid_lsh', 'unlearner_parameter': {'max_size': 4096}, 'reverse_nearest_neighbor_num': 30}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'light_lof'}
+    ,
+    'lof':
+      {'parameter': {'method': 'euclid_lsh', 'nearest_neighbor_num': 10, 'reverse_nearest_neighbor_num': 30, 'parameter': {'hash_num': 64, 'seed': 1091, 'bin_width': 100, 'table_num': 4, 'probe_num': 64}}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'lof'}
+    ,
+    'lof_inverted_index_euclid':
+      {'parameter': {'method': 'inverted_index_euclid', 'nearest_neighbor_num': 10, 'reverse_nearest_neighbor_num': 30, 'parameter': {}}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'lof'}
+    ,
+    'lof_unlearner_lru':
+      {'parameter': {'parameter': {'hash_num': 64, 'seed': 1091, 'bin_width': 100, 'table_num': 4, 'probe_num': 64}, 'nearest_neighbor_num': 10, 'unlearner': 'lru', 'method': 'euclid_lsh', 'unlearner_parameter': {'max_size': 4096}, 'reverse_nearest_neighbor_num': 30}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'lof'}
+    ,
+  },
+  WEIGHT: {
+    'default':
+      {'converter': {'binary_rules': [], 'num_filter_types': {'sigmoid': {'method': 'sigmoid_normalization', 'bias': '5', 'gain': '0.05'}, 'linear': {'min': '0', 'method': 'linear_normalization', 'max': '100'}, 'gaussian': {'method': 'gaussian_normalization', 'standard_deviation': '2.3', 'average': '80'}}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'tf', 'key': '*', 'global_weight': 'idf', 'type': 'unigram'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'binary_types': {}, 'num_filter_rules': [], 'string_types': {'unigram': {'method': 'ngram', 'char_num': '1'}, 'bigram': {'method': 'ngram', 'char_num': '2'}, 'trigram': {'method': 'ngram', 'char_num': '3'}}}}
     ,
   },
   BANDIT: {
@@ -88,129 +170,47 @@ CONFIGS = {
   },
   CLUSTERING: {
     'default':
-      {'method': 'kmeans', 'parameter': {'seed': 0, 'bicriteria_base_size': 10, 'forgetting_threshold': 0.5, 'bucket_size': 1000, 'k': 3, 'bucket_length': 2, 'compressor_method': 'simple', 'forgetting_factor': 0, 'compressed_bucket_size': 100}, 'converter': {'string_types': {'bigram': {'method': 'ngram', 'char_num': '2'}, 'trigram': {'method': 'ngram', 'char_num': '3'}, 'unigram': {'method': 'ngram', 'char_num': '1'}}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'tf', 'global_weight': 'idf', 'type': 'bigram', 'key': '*'}]}}
+      {'parameter': {'forgetting_threshold': 0.5, 'bucket_length': 2, 'k': 3, 'bicriteria_base_size': 10, 'compressor_method': 'simple', 'compressed_bucket_size': 100, 'forgetting_factor': 0, 'seed': 0, 'bucket_size': 1000}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'tf', 'key': '*', 'global_weight': 'idf', 'type': 'bigram'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {'unigram': {'method': 'ngram', 'char_num': '1'}, 'bigram': {'method': 'ngram', 'char_num': '2'}, 'trigram': {'method': 'ngram', 'char_num': '3'}}}, 'method': 'kmeans'}
     ,
     'gmm':
-      {'method': 'gmm', 'parameter': {'seed': 0, 'bicriteria_base_size': 10, 'forgetting_threshold': 0.5, 'bucket_size': 1000, 'k': 3, 'bucket_length': 2, 'compressor_method': 'compressive_gmm', 'forgetting_factor': 0, 'compressed_bucket_size': 100}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
+      {'parameter': {'forgetting_threshold': 0.5, 'bucket_length': 2, 'k': 3, 'bicriteria_base_size': 10, 'compressor_method': 'compressive_gmm', 'compressed_bucket_size': 100, 'forgetting_factor': 0, 'seed': 0, 'bucket_size': 1000}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'gmm'}
     ,
     'kmeans':
-      {'method': 'kmeans', 'parameter': {'seed': 0, 'bicriteria_base_size': 10, 'forgetting_threshold': 0.5, 'bucket_size': 1000, 'k': 3, 'bucket_length': 2, 'compressor_method': 'compressive_kmeans', 'forgetting_factor': 0, 'compressed_bucket_size': 100}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
+      {'parameter': {'forgetting_threshold': 0.5, 'bucket_length': 2, 'k': 3, 'bicriteria_base_size': 10, 'compressor_method': 'compressive_kmeans', 'compressed_bucket_size': 100, 'forgetting_factor': 0, 'seed': 0, 'bucket_size': 1000}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'kmeans'}
     ,
     'kmeans_combinational_feature':
-      {'method': 'kmeans', 'parameter': {'seed': 0, 'bicriteria_base_size': 10, 'forgetting_threshold': 0.5, 'bucket_size': 1000, 'k': 3, 'bucket_length': 2, 'compressor_method': 'compressive_kmeans', 'forgetting_factor': 0, 'compressed_bucket_size': 100}, 'converter': {'string_types': {}, 'combination_rules': [{'key_left': '*', 'type': 'mul', 'key_right': '*'}], 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}], 'combination_types': {}}}
+      {'parameter': {'forgetting_threshold': 0.5, 'bucket_length': 2, 'k': 3, 'bicriteria_base_size': 10, 'compressor_method': 'compressive_kmeans', 'compressed_bucket_size': 100, 'forgetting_factor': 0, 'seed': 0, 'bucket_size': 1000}, 'converter': {'combination_rules': [{'type': 'mul', 'key_left': '*', 'key_right': '*'}], 'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'combination_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'kmeans'}
     ,
   },
-  RECOMMENDER: {
+  REGRESSION: {
     'default':
-      {'method': 'inverted_index', 'converter': {'string_types': {'bigram': {'method': 'ngram', 'char_num': '2'}, 'trigram': {'method': 'ngram', 'char_num': '3'}, 'unigram': {'method': 'ngram', 'char_num': '1'}}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'tf', 'global_weight': 'idf', 'type': 'bigram', 'key': '*'}]}}
-    ,
-    'euclid_lsh':
-      {'method': 'euclid_lsh', 'parameter': {'probe_num': 64, 'hash_num': 64, 'bin_width': 100, 'table_num': 4, 'seed': 1091}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'euclid_lsh_unlearn_lru':
-      {'method': 'euclid_lsh', 'parameter': {'probe_num': 64, 'hash_num': 64, 'unlearner_parameter': {'max_size': 2048}, 'unlearner': 'lru', 'bin_width': 100, 'table_num': 4, 'seed': 1091}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'inverted_index':
-      {'method': 'inverted_index', 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'inverted_index_euclid':
-      {'method': 'inverted_index_euclid', 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'inverted_index_euclid_unlearn_lru':
-      {'method': 'inverted_index_euclid', 'parameter': {'unlearner': 'lru', 'unlearner_parameter': {'max_size': 2048}}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'inverted_index_unlearn_lru':
-      {'method': 'inverted_index', 'parameter': {'unlearner': 'lru', 'unlearner_parameter': {'max_size': 2048}}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'lsh':
-      {'method': 'lsh', 'parameter': {'hash_num': 64}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'lsh_combinational_feature':
-      {'method': 'lsh', 'parameter': {'hash_num': 64}, 'converter': {'string_types': {}, 'combination_rules': [{'key_left': '*', 'type': 'mul', 'key_right': '*'}], 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}], 'combination_types': {}}}
-    ,
-    'lsh_unlearn_lru':
-      {'method': 'lsh', 'parameter': {'hash_num': 64, 'unlearner_parameter': {'max_size': 2048}, 'unlearner': 'lru'}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'minhash':
-      {'method': 'minhash', 'parameter': {'hash_num': 64}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'minhash_unlearn_lru':
-      {'method': 'minhash', 'parameter': {'hash_num': 64, 'unlearner_parameter': {'max_size': 2048}, 'unlearner': 'lru'}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'nearest_neighbor_recommender_euclid_lsh':
-      {'method': 'nearest_neighbor_recommender', 'parameter': {'method': 'euclid_lsh', 'parameter': {'hash_num': 512}}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'nearest_neighbor_recommender_euclid_lsh_unlearn_lru':
-      {'method': 'nearest_neighbor_recommender', 'parameter': {'method': 'euclid_lsh', 'parameter': {'hash_num': 512}, 'unlearner_parameter': {'max_size': 2048}, 'unlearner': 'lru'}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-  },
-  BURST: {
-    'burst':
-      {'method': 'burst', 'parameter': {'result_window_rotate_size': 5, 'max_reuse_batch_num': 5, 'batch_interval': 10, 'window_batch_size': 5, 'costcut_threshold': -1}}
-    ,
-    'default':
-      {'method': 'burst', 'parameter': {'result_window_rotate_size': 5, 'max_reuse_batch_num': 5, 'batch_interval': 10, 'window_batch_size': 5, 'costcut_threshold': -1}}
-    ,
-  },
-  CLASSIFIER: {
-    'arow':
-      {'method': 'AROW', 'parameter': {'regularization_weight': 1.0}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'arow_combinational_feature':
-      {'method': 'AROW', 'parameter': {'regularization_weight': 1.0}, 'converter': {'string_types': {}, 'combination_rules': [{'key_left': '*', 'type': 'mul', 'key_right': '*'}], 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}], 'combination_types': {}}}
-    ,
-    'cosine':
-      {'method': 'cosine', 'parameter': {'nearest_neighbor_num': 16, 'local_sensitivity': 0.1}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'cw':
-      {'method': 'CW', 'parameter': {'regularization_weight': 1.0}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'default':
-      {'method': 'AROW', 'parameter': {'regularization_weight': 1.0}, 'converter': {'string_types': {'bigram': {'method': 'ngram', 'char_num': '2'}, 'trigram': {'method': 'ngram', 'char_num': '3'}, 'unigram': {'method': 'ngram', 'char_num': '1'}}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'tf', 'global_weight': 'idf', 'type': 'bigram', 'key': '*'}]}}
-    ,
-    'euclidean':
-      {'method': 'euclidean', 'parameter': {'nearest_neighbor_num': 16, 'local_sensitivity': 0.1}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'nherd':
-      {'method': 'NHERD', 'parameter': {'regularization_weight': 1.0}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'nn':
-      {'method': 'NN', 'parameter': {'nearest_neighbor_num': 128, 'method': 'euclid_lsh', 'parameter': {'hash_num': 64}, 'local_sensitivity': 1}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
+      {'parameter': {'regularization_weight': 3.402823e+38, 'sensitivity': 0.1}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'tf', 'key': '*', 'global_weight': 'idf', 'type': 'bigram'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {'unigram': {'method': 'ngram', 'char_num': '1'}, 'bigram': {'method': 'ngram', 'char_num': '2'}, 'trigram': {'method': 'ngram', 'char_num': '3'}}}, 'method': 'PA'}
     ,
     'pa':
-      {'method': 'PA', 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
+      {'parameter': {'regularization_weight': 3.402823e+38, 'sensitivity': 0.1}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'PA'}
     ,
-    'pa1':
-      {'method': 'PA1', 'parameter': {'regularization_weight': 1.0}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'pa2':
-      {'method': 'PA2', 'parameter': {'regularization_weight': 1.0}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'perceptron':
-      {'method': 'perceptron', 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
+    'pa_combinational_feature':
+      {'parameter': {'regularization_weight': 3.402823e+38, 'sensitivity': 0.1}, 'converter': {'combination_rules': [{'type': 'mul', 'key_left': '*', 'key_right': '*'}], 'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'combination_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'PA'}
     ,
   },
-  ANOMALY: {
+  NEAREST_NEIGHBOR: {
     'default':
-      {'method': 'lof', 'parameter': {'nearest_neighbor_num': 10, 'method': 'inverted_index_euclid', 'reverse_nearest_neighbor_num': 30, 'parameter': {}, 'ignore_kth_same_point': True}, 'converter': {'string_types': {'bigram': {'method': 'ngram', 'char_num': '2'}, 'trigram': {'method': 'ngram', 'char_num': '3'}, 'unigram': {'method': 'ngram', 'char_num': '1'}}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'tf', 'global_weight': 'idf', 'type': 'bigram', 'key': '*'}]}}
+      {'parameter': {'hash_num': 64}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'tf', 'key': '*', 'global_weight': 'idf', 'type': 'bigram'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {'unigram': {'method': 'ngram', 'char_num': '1'}, 'bigram': {'method': 'ngram', 'char_num': '2'}, 'trigram': {'method': 'ngram', 'char_num': '3'}}}, 'method': 'lsh'}
     ,
-    'light_lof':
-      {'method': 'light_lof', 'parameter': {'nearest_neighbor_num': 10, 'method': 'euclid_lsh', 'reverse_nearest_neighbor_num': 30, 'parameter': {'hash_num': 64}}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
+    'euclid_lsh':
+      {'parameter': {'hash_num': 64}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'euclid_lsh'}
     ,
-    'light_lof_combinational_feature':
-      {'method': 'light_lof', 'parameter': {'nearest_neighbor_num': 10, 'method': 'euclid_lsh', 'reverse_nearest_neighbor_num': 30, 'parameter': {'hash_num': 64}}, 'converter': {'string_types': {}, 'combination_rules': [{'key_left': '*', 'type': 'mul', 'key_right': '*'}], 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}], 'combination_types': {}}}
+    'lsh':
+      {'parameter': {'hash_num': 64}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'lsh'}
     ,
-    'light_lof_unlearn_lru':
-      {'method': 'light_lof', 'parameter': {'nearest_neighbor_num': 10, 'unlearner_parameter': {'max_size': 4096}, 'unlearner': 'lru', 'method': 'euclid_lsh', 'reverse_nearest_neighbor_num': 30, 'parameter': {'hash_num': 64}}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
+    'lsh_combinational_feature':
+      {'parameter': {'hash_num': 64}, 'converter': {'combination_rules': [{'type': 'mul', 'key_left': '*', 'key_right': '*'}], 'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'combination_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'lsh'}
     ,
-    'lof':
-      {'method': 'lof', 'parameter': {'nearest_neighbor_num': 10, 'method': 'euclid_lsh', 'reverse_nearest_neighbor_num': 30, 'parameter': {'probe_num': 64, 'hash_num': 64, 'bin_width': 100, 'table_num': 4, 'seed': 1091}}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
+    'lsh_multithread':
+      {'parameter': {'threads': 2, 'hash_num': 64}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'lsh'}
     ,
-    'lof_inverted_index_euclid':
-      {'method': 'lof', 'parameter': {'nearest_neighbor_num': 10, 'method': 'inverted_index_euclid', 'reverse_nearest_neighbor_num': 30, 'parameter': {}}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
-    ,
-    'lof_unlearner_lru':
-      {'method': 'lof', 'parameter': {'nearest_neighbor_num': 10, 'unlearner_parameter': {'max_size': 4096}, 'unlearner': 'lru', 'method': 'euclid_lsh', 'reverse_nearest_neighbor_num': 30, 'parameter': {'probe_num': 64, 'hash_num': 64, 'bin_width': 100, 'table_num': 4, 'seed': 1091}}, 'converter': {'string_types': {}, 'num_filter_types': {}, 'num_rules': [{'type': 'num', 'key': '*'}], 'num_filter_rules': [], 'string_filter_rules': [], 'num_types': {}, 'string_filter_types': {}, 'string_rules': [{'sample_weight': 'bin', 'global_weight': 'bin', 'type': 'str', 'key': '*'}]}}
+    'minhash':
+      {'parameter': {'hash_num': 64}, 'converter': {'num_filter_types': {}, 'num_rules': [{'key': '*', 'type': 'num'}], 'string_rules': [{'sample_weight': 'bin', 'key': '*', 'global_weight': 'bin', 'type': 'str'}], 'string_filter_types': {}, 'num_types': {}, 'string_filter_rules': [], 'num_filter_rules': [], 'string_types': {}}, 'method': 'minhash'}
     ,
   },
 }
